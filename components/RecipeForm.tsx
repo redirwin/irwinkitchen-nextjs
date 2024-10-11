@@ -132,24 +132,26 @@ export function RecipeForm() {
     fileInputRef.current?.click()
   }
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newRecipe = {
-      id: Date.now().toString(), // Generate a unique ID
-      name: recipe.name,
-      shortDescription: recipe.shortDescription,
-      description: recipe.description,
-      cookingTime: recipe.cookingTime,
-      difficulty: recipe.difficulty,
-      servingSize: recipe.servingSize,
-      ingredients: recipe.ingredients,
-      steps: recipe.steps,
-      tags: recipe.tags,
-    };
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    const formData = new FormData(event.currentTarget);
+    
+    // Convert ingredients and steps to JSON strings
+    formData.set('ingredients', JSON.stringify(recipe.ingredients));
+    formData.set('steps', JSON.stringify(recipe.steps));
 
-    addRecipe(newRecipe);
-    console.log('New recipe added:', newRecipe);
-    router.push('/'); // Redirect to the home page after saving
+    try {
+      const response = await fetch('/api/recipes', {
+        method: 'POST',
+        body: formData,
+      });
+      if (!response.ok) throw new Error('Failed to add recipe');
+      const newRecipe = await response.json();
+      addRecipe(newRecipe);
+      router.push('/');
+    } catch (error) {
+      console.error('Error adding recipe:', error);
+    }
   };
 
   return (

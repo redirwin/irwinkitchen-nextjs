@@ -1,15 +1,21 @@
-"use client";
-
-import { useRecipes } from '@/lib/recipeContext';
 import { RecipeDetail } from '@/components/RecipeDetail';
+import { prisma } from '@/lib/prisma';
+import { notFound } from 'next/navigation';
 
-export default function RecipePage({ params }: { params: { id: string } }) {
-  const { getRecipeById } = useRecipes();
-  const recipe = getRecipeById(params.id);
-  
-  if (!recipe) {
-    return <div>Recipe not found</div>;
+export default async function RecipePage({ params }: { params: { id: string } }) {
+  try {
+    const recipe = await prisma.recipe.findUnique({
+      where: { id: params.id },
+      include: { ingredients: true, steps: true, tags: true },
+    });
+
+    if (!recipe) {
+      notFound();
+    }
+
+    return <RecipeDetail recipe={recipe} />;
+  } catch (error) {
+    console.error('Error fetching recipe:', error);
+    notFound();
   }
-
-  return <RecipeDetail recipe={recipe} />;
 }

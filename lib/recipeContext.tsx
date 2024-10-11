@@ -6,13 +6,14 @@ import { recipes as initialRecipes } from '@/data/recipes';
 interface RecipeContextType {
   recipes: Recipe[];
   addRecipe: (recipe: Recipe) => void;
+  setRecipes: (recipes: Recipe[]) => void;
   getRecipeById: (id: string) => Recipe | undefined;
 }
 
 const RecipeContext = createContext<RecipeContextType | undefined>(undefined);
 
 export function RecipeProvider({ children }: { children: React.ReactNode }) {
-  const [recipes, setRecipes] = useState<Recipe[]>(initialRecipes);
+  const [recipes, setRecipes] = useState<Recipe[]>([]);
 
   const addRecipe = (recipe: Recipe) => {
     setRecipes(prevRecipes => [...prevRecipes, recipe]);
@@ -21,7 +22,7 @@ export function RecipeProvider({ children }: { children: React.ReactNode }) {
   const getRecipeById = (id: string) => recipes.find(recipe => recipe.id === id);
 
   return (
-    <RecipeContext.Provider value={{ recipes, addRecipe, getRecipeById }}>
+    <RecipeContext.Provider value={{ recipes, addRecipe, setRecipes, getRecipeById }}>
       {children}
     </RecipeContext.Provider>
   );

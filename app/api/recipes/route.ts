@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server'
+import { PrismaClient } from '@prisma/client'
+
+const prisma = new PrismaClient()
 
 export async function GET() {
   try {
     const recipes = await prisma.recipe.findMany({
-      include: { tags: true }
+      include: { tags: true, ingredients: true, steps: true }
     })
     return NextResponse.json(recipes)
   } catch (error) {
@@ -24,6 +27,30 @@ export async function POST(request: Request) {
     const ingredients = JSON.parse(formData.get('ingredients') as string);
     const steps = JSON.parse(formData.get('steps') as string);
     const tags = (formData.get('tags') as string).split(',').map(tag => tag.trim());
+
+    const recipe = await prisma.recipe.create({
+      data: {
+        name,
+        shortDescription,
+        description,
+        cookingTime,
+        difficulty,
+        servingSize,
+        ingredients: {
+          create: ingredients,
+        },
+        steps: {
+          create: steps.map((step: string, index: number) => ({ order: index + 1, content: step })),
+        },
+        tags: {
+          connectOrCreate: tags.map((tag: string) => ({
+            where: { name: tag },
+            create: { name: tag },
+          })),
+        },
+      },
+      include: { tags: true, ingredients: true, steps: true },
+    });
 
     return NextResponse.json(recipe);
   } catch (error) {

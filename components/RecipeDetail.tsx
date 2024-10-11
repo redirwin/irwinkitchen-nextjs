@@ -1,5 +1,6 @@
 import { Badge } from "@/components/ui/badge"
 import { Recipe } from '../types/Recipe';
+import { RecipeActions } from './RecipeActions';
 
 interface RecipeDetailProps {
   recipe: Recipe;
@@ -8,7 +9,10 @@ interface RecipeDetailProps {
 export function RecipeDetail({ recipe }: RecipeDetailProps) {
   return (
     <div className="max-w-3xl mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-4">{recipe.name}</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">{recipe.name}</h1>
+        <RecipeActions recipeId={recipe.id} />
+      </div>
       {recipe.shortDescription && <p className="text-lg mb-4">{recipe.shortDescription}</p>}
       <div className="flex space-x-4 mb-4">
         {recipe.cookingTime && <Badge>{recipe.cookingTime}</Badge>}
@@ -17,11 +21,22 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
       </div>
       {recipe.tags && (
         <div className="mb-4">
-          {recipe.tags.split(',').map((tag) => (
-            <Badge key={tag.trim()} variant="secondary" className="mr-2">
-              {tag.trim()}
-            </Badge>
-          ))}
+          <h3 className="text-lg font-semibold mb-2">Tags:</h3>
+          <div className="flex flex-wrap gap-2">
+            {Array.isArray(recipe.tags) ? (
+              recipe.tags.map((tag) => (
+                <Badge key={tag.name} variant="secondary" className="mr-2">
+                  {tag.name}
+                </Badge>
+              ))
+            ) : typeof recipe.tags === 'string' ? (
+              recipe.tags.split(',').map((tag) => (
+                <Badge key={tag.trim()} variant="secondary" className="mr-2">
+                  {tag.trim()}
+                </Badge>
+              ))
+            ) : null}
+          </div>
         </div>
       )}
       {recipe.ingredients && recipe.ingredients.length > 0 && (
@@ -29,9 +44,7 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
           <h2 className="text-2xl font-semibold mb-2">Ingredients</h2>
           <ul className="list-disc pl-5 mb-4">
             {recipe.ingredients.map((ingredient, index) => (
-              <li key={index}>
-                {ingredient.amount} {ingredient.name}
-              </li>
+              <li key={index}>{ingredient.amount} {ingredient.name}</li>
             ))}
           </ul>
         </>
@@ -41,7 +54,7 @@ export function RecipeDetail({ recipe }: RecipeDetailProps) {
           <h2 className="text-2xl font-semibold mb-2">Instructions</h2>
           <ol className="list-decimal pl-5 mb-4">
             {recipe.steps.map((step, index) => (
-              <li key={index}>{step}</li>
+              <li key={index}>{step.content}</li>
             ))}
           </ol>
         </>

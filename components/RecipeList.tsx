@@ -4,9 +4,24 @@ import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { useRecipes } from '@/lib/recipeContext';
+import { useEffect } from 'react';
 
 export default function RecipeList() {
-  const { recipes } = useRecipes();
+  const { recipes, setRecipes } = useRecipes();
+
+  useEffect(() => {
+    const fetchRecipes = async () => {
+      try {
+        const response = await fetch('/api/recipes');
+        if (!response.ok) throw new Error('Failed to fetch recipes');
+        const data = await response.json();
+        setRecipes(data);
+      } catch (error) {
+        console.error('Error fetching recipes:', error);
+      }
+    };
+    fetchRecipes();
+  }, [setRecipes]);
 
   return (
     <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -27,15 +42,21 @@ export default function RecipeList() {
                   {recipe.servingSize && <span>Servings: {recipe.servingSize}</span>}
                 </div>
               </CardContent>
-              {recipe.tags && (
-                <CardFooter>
-                  <div className="flex flex-wrap gap-2">
-                    {recipe.tags.split(',').map((tag) => (
-                      <Badge key={tag.trim()} variant="secondary">{tag.trim()}</Badge>
-                    ))}
-                  </div>
-                </CardFooter>
-              )}
+              <CardFooter>
+                <div className="flex flex-wrap gap-2">
+                  {Array.isArray(recipe.tags) ? (
+                    recipe.tags.map((tag) => (
+                      <Badge key={tag.name} variant="secondary">{tag.name}</Badge>
+                    ))
+                  ) : (
+                    typeof recipe.tags === 'string' ? 
+                      recipe.tags.split(',').map((tag) => (
+                        <Badge key={tag.trim()} variant="secondary">{tag.trim()}</Badge>
+                      ))
+                    : null
+                  )}
+                </div>
+              </CardFooter>
             </Card>
           </Link>
         ))
