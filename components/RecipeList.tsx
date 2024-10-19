@@ -9,12 +9,14 @@ import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { X } from "lucide-react"
+import { Button } from "@/components/ui/button"
 
 export default function RecipeList() {
   const { recipes, setRecipes } = useRecipes();
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const recipesPerPage = 9;
 
   useEffect(() => {
@@ -39,12 +41,14 @@ export default function RecipeList() {
     Array.isArray(recipe.tags) ? recipe.tags.map(tag => tag.name) : recipe.tags.split(',').map(tag => tag.trim())
   ))).sort();
 
-  // Filter recipes based on selected tag
-  const filteredRecipes = selectedTag
+  // Filter recipes based on selected tags
+  const filteredRecipes = selectedTags.length > 0
     ? recipes.filter(recipe => 
-        (Array.isArray(recipe.tags) 
-          ? recipe.tags.some(tag => tag.name === selectedTag)
-          : recipe.tags.split(',').map(tag => tag.trim()).includes(selectedTag))
+        selectedTags.every(tag => 
+          (Array.isArray(recipe.tags) 
+            ? recipe.tags.some(t => t.name === tag)
+            : recipe.tags.split(',').map(t => t.trim()).includes(tag))
+        )
       )
     : recipes;
 
@@ -53,6 +57,24 @@ export default function RecipeList() {
   const indexOfFirstRecipe = indexOfLastRecipe - recipesPerPage;
   const currentRecipes = filteredRecipes.slice(indexOfFirstRecipe, indexOfLastRecipe);
   const totalPages = Math.ceil(filteredRecipes.length / recipesPerPage);
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags(prev => 
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    );
+    setCurrentPage(1);
+  };
+
+  const resetTags = () => {
+    setSelectedTags([]);
+    setCurrentPage(1);
+  };
+
+  const handleTagClick = (e: React.MouseEvent, tag: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+    toggleTag(tag);
+  };
 
   if (isLoading) {
     return (
@@ -75,21 +97,36 @@ export default function RecipeList() {
   return (
     <>
       <div className="mb-6">
-        <Select onValueChange={(value) => {
-          setSelectedTag(value === 'all' ? null : value);
-          setCurrentPage(1);  // Reset to first page when changing filter
-        }}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Filter by tag" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All Tags</SelectItem>
-            {allTags.map(tag => (
-              <SelectItem key={tag} value={tag}>{tag}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex flex-wrap gap-2 mb-4">
+          {allTags.map(tag => (
+            <Badge 
+              key={tag}
+              variant={selectedTags.includes(tag) ? "default" : "secondary"}
+              className="cursor-pointer transition-colors duration-200"
+              onClick={() => toggleTag(tag)}
+            >
+              {tag}
+            </Badge>
+          ))}
+        </div>
+        {selectedTags.length > 0 && (
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">
+              Filtered by: {selectedTags.join(', ')}
+            </span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={resetTags}
+              className="h-8 px-2 text-xs"
+            >
+              <X className="h-4 w-4 mr-1" />
+              Reset
+            </Button>
+          </div>
+        )}
       </div>
+
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {currentRecipes.map((recipe) => (
           <Link href={`/recipes/${recipe.slug}`} key={recipe.id} className="h-full">
@@ -125,12 +162,26 @@ export default function RecipeList() {
                 <div className="flex flex-wrap gap-2">
                   {Array.isArray(recipe.tags) ? (
                     recipe.tags.map((tag) => (
-                      <Badge key={tag.name} variant="secondary">{tag.name}</Badge>
+                      <Badge 
+                        key={tag.name} 
+                        variant={selectedTags.includes(tag.name) ? "default" : "secondary"}
+                        className="cursor-pointer transition-colors duration-200"
+                        onClick={(e) => handleTagClick(e, tag.name)}
+                      >
+                        {tag.name}
+                      </Badge>
                     ))
                   ) : (
                     typeof recipe.tags === 'string' ? 
                       recipe.tags.split(',').map((tag) => (
-                        <Badge key={tag.trim()} variant="secondary">{tag.trim()}</Badge>
+                        <Badge 
+                          key={tag.trim()} 
+                          variant={selectedTags.includes(tag.trim()) ? "default" : "secondary"}
+                          className="cursor-pointer transition-colors duration-200"
+                          onClick={(e) => handleTagClick(e, tag.trim())}
+                        >
+                          {tag.trim()}
+                        </Badge>
                       ))
                     : null
                   )}
