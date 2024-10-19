@@ -89,7 +89,12 @@ export function RecipeForm({ initialRecipe, slug, onUpdate }: RecipeFormProps) {
   const handleStepChange = (index: number, value: string) => {
     setRecipe(prev => ({
       ...prev,
-      steps: prev.steps.map((step, i) => i === index ? value : step)
+      steps: prev.steps.map((step, i) => {
+        if (i === index) {
+          return typeof step === 'string' ? value : { ...step, content: value };
+        }
+        return step;
+      })
     }));
   }
 
@@ -176,10 +181,14 @@ export function RecipeForm({ initialRecipe, slug, onUpdate }: RecipeFormProps) {
     formData.set('ingredients', JSON.stringify(recipe.ingredients.map(({ id, recipeId, ...rest }) => rest)));
 
     // Format steps
-    formData.set('steps', JSON.stringify(recipe.steps.map((step, index) => ({
-      order: index + 1,
-      content: step
-    }))));
+    formData.set('steps', JSON.stringify(recipe.steps.map((step, index) => {
+      if (typeof step === 'string') {
+        return { order: index + 1, content: step };
+      } else if (typeof step === 'object' && step.content) {
+        return { order: index + 1, content: step.content };
+      }
+      return { order: index + 1, content: '' };
+    })));
 
     // Format tags
     formData.set('tags', recipe.tags);
@@ -191,7 +200,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate }: RecipeFormProps) {
     }
 
     try {
-      const url = initialRecipe ? `/api/recipes/${initialRecipe.slug}` : '/api/recipes';
+      const url = initialRecipe ? `/api/recipes/${slug}` : '/api/recipes';
       const method = initialRecipe ? 'PUT' : 'POST';
       const response = await fetch(url, {
         method: method,
@@ -208,13 +217,14 @@ export function RecipeForm({ initialRecipe, slug, onUpdate }: RecipeFormProps) {
       toast({
         title: initialRecipe ? "Recipe Updated" : "Recipe Added",
         description: "Your recipe has been saved successfully.",
-      })
+      });
 
       if (initialRecipe && onUpdate) {
         onUpdate(savedRecipe);
-      } else {
-        router.push(`/recipes/${savedRecipe.slug}`);
       }
+      
+      // Redirect to the recipe detail page
+      router.push(`/recipes/${savedRecipe.slug}`);
     } catch (error) {
       console.error('Error saving recipe:', error);
       setError(error.message || 'An error occurred while saving the recipe');
