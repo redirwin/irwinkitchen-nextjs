@@ -34,7 +34,11 @@ export async function DELETE(
     return NextResponse.json({ message: 'Recipe deleted successfully' });
   } catch (error) {
     console.error('Error deleting recipe:', error);
-    return NextResponse.json({ error: 'Error deleting recipe' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Error deleting recipe',
+      title: 'Deletion Failed',
+      description: 'An unexpected error occurred while deleting the recipe. Please try again.'
+    }, { status: 500 });
   }
 }
 
@@ -140,8 +144,16 @@ export async function PUT(
   } catch (error) {
     console.error('Error updating recipe:', error);
     if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
-      return NextResponse.json({ error: 'A recipe with this name already exists' }, { status: 400 });
+      return NextResponse.json({ 
+        error: 'A recipe with this name already exists',
+        title: 'Duplicate Recipe Name',
+        description: 'Please choose a different name for your recipe.'
+      }, { status: 400 });
     }
-    return NextResponse.json({ error: 'Error updating recipe' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Error updating recipe',
+      title: 'Update Failed',
+      description: 'An unexpected error occurred while updating the recipe. Please try again.'
+    }, { status: 500 });
   }
 }

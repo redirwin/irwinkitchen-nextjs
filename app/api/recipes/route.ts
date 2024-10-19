@@ -60,10 +60,18 @@ export async function POST(request: Request) {
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {
       if (error.code === 'P2002') {
-        return NextResponse.json({ error: 'A recipe with this name already exists.' }, { status: 409 });
+        return NextResponse.json({ 
+          error: 'A recipe with this name already exists.',
+          title: 'Duplicate Recipe',
+          description: 'Please choose a different name for your recipe.'
+        }, { status: 409 });
       }
     }
     console.error('Error creating recipe:', error);
-    return NextResponse.json({ error: 'Error creating recipe' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Error creating recipe',
+      title: 'Recipe Creation Failed',
+      description: 'An unexpected error occurred while creating the recipe. Please try again.'
+    }, { status: 500 });
   }
 }

@@ -212,7 +212,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to save recipe');
+        throw new Error(errorData.error);
       }
 
       const savedRecipe = await response.json();
@@ -226,11 +226,14 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
         onUpdate(savedRecipe);
       }
       
-      // Redirect to the recipe detail page
       router.push(`/recipes/${savedRecipe.slug}`);
     } catch (error) {
       console.error('Error saving recipe:', error);
-      setError(error.message || 'An error occurred while saving the recipe');
+      toast({
+        title: error.title || "Error",
+        description: error.description || error.message || 'An error occurred while saving the recipe',
+        variant: "destructive",
+      });
     }
   };
 
@@ -249,7 +252,8 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
       });
 
       if (!response.ok) {
-        throw new Error('Failed to delete recipe');
+        const errorData = await response.json();
+        throw new Error(errorData.error);
       }
 
       toast({
@@ -257,10 +261,14 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
         description: "Your recipe has been successfully deleted.",
       });
 
-      router.push('/'); // Redirect to home page after deletion
+      router.push('/');
     } catch (error) {
       console.error('Error deleting recipe:', error);
-      setError(error.message || 'An error occurred while deleting the recipe');
+      toast({
+        title: error.title || "Deletion Failed",
+        description: error.description || error.message || 'An error occurred while deleting the recipe',
+        variant: "destructive",
+      });
     } finally {
       setShowDeleteModal(false);
     }
