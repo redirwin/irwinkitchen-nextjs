@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client'
+import { generateSlug } from '../lib/utils'
 
 const prisma = new PrismaClient()
 
@@ -19,6 +20,7 @@ async function main() {
             cookingTime: recipe.cookingTime,
             difficulty: recipe.difficulty,
             servingSize: recipe.servingSize,
+            slug: generateSlug(recipe.name),
             ingredients: {
               deleteMany: {},
               create: recipe.ingredients.create,
@@ -47,6 +49,7 @@ async function main() {
             cookingTime: recipe.cookingTime,
             difficulty: recipe.difficulty,
             servingSize: recipe.servingSize,
+            slug: generateSlug(recipe.name),
             ingredients: {
               create: recipe.ingredients.create,
             },
@@ -404,7 +407,6 @@ const recipes = [
     },
   },
 ]
-
 
 main()
   .catch((e) => {

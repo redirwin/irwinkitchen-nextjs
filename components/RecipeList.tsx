@@ -29,7 +29,7 @@ export default function RecipeList() {
         <p>No recipes found. Add some recipes to get started!</p>
       ) : (
         recipes.map((recipe) => (
-          <Link href={`/recipes/${recipe.id}`} key={recipe.id} className="h-full">
+          <Link href={`/recipes/${recipe.slug}`} key={recipe.id} className="h-full">
             <Card className="cursor-pointer shadow-md hover:shadow-lg transition-all duration-300 ease-in-out hover:-translate-y-1 h-full flex flex-col">
               <CardHeader>
                 <CardTitle>{recipe.name}</CardTitle>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -9,24 +9,40 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PlusCircledIcon, Cross2Icon } from "@radix-ui/react-icons"
 import { useRouter } from "next/navigation"
 import { useRecipes } from '@/lib/recipeContext'
+import { generateSlug } from '@/lib/utils'
+import { useToast } from "@/components/ui/use-toast"
 
-export function RecipeForm() {
+interface RecipeFormProps {
+  initialRecipe?: Recipe;
+}
+
+export function RecipeForm({ initialRecipe }: RecipeFormProps) {
   const router = useRouter()
-  const { addRecipe } = useRecipes()
-  const [recipe, setRecipe] = useState({
-    name: '',
-    shortDescription: '',
-    description: '',
-    ingredients: [{ amount: '', name: '' }],
-    steps: [''],
-    cookingTime: '',
-    difficulty: '',
-    servingSize: '',
-    tags: '',
-    image: null as File | null,
+  const { addRecipe, updateRecipe } = useRecipes()
+  const { toast } = useToast()
+  const [recipe, setRecipe] = useState(() => {
+    if (initialRecipe) {
+      return {
+        ...initialRecipe,
+        tags: initialRecipe.tags.map(tag => tag.name).join(', ')
+      };
+    }
+    return {
+      name: '',
+      shortDescription: '',
+      description: '',
+      ingredients: [{ amount: '', name: '' }],
+      steps: [''],
+      cookingTime: '',
+      difficulty: '',
+      servingSize: '',
+      tags: '',
+      image: null as File | null,
+    };
   })
-  const [imagePreview, setImagePreview] = useState<string | null>(null)
+  const [imagePreview, setImagePreview] = useState<string | null>(initialRecipe?.image || null)
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [error, setError] = useState<string | null>(null)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -36,7 +52,7 @@ export function RecipeForm() {
   const handleIngredientChange = (index: number, field: 'amount' | 'name', value: string) => {
     setRecipe(prev => ({
       ...prev,
-      ingredients: prev.ingredients.map((ingredient, i) => 
+      ingredients: prev.ingredients.map((ingredient, i) =>
         i === index ? { ...ingredient, [field]: value } : ingredient
       )
     }))
@@ -66,7 +82,7 @@ export function RecipeForm() {
   const handleStepChange = (index: number, value: string) => {
     setRecipe(prev => ({
       ...prev,
-      steps: prev.steps.map((step, i) => 
+      steps: prev.steps.map((step, i) =>
         i === index ? value : step
       )
     }))
@@ -117,7 +133,7 @@ export function RecipeForm() {
           alert("Image dimensions are too large. Maximum size is 1024x1024 pixels.")
           return
         }
-        
+
         setRecipe(prev => ({ ...prev, image: file }))
         setImagePreview(URL.createObjectURL(file))
       }
@@ -132,27 +148,64 @@ export function RecipeForm() {
     fileInputRef.current?.click()
   }
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    
-    // Convert ingredients and steps to JSON strings
-    formData.set('ingredients', JSON.stringify(recipe.ingredients));
-    formData.set('steps', JSON.stringify(recipe.steps));
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setError(null);
+    const formData = new FormData(e.currentTarget);
+
+    formData.set('ingredients', JSON.stringify(recipe.ingredients.map(({ id, recipeId, ...rest }) => rest)));
+    formData.set('steps', JSON.stringify(recipe.steps.map(({ id, recipeId, ...rest }) => rest)));
+    formData.set('tags', Array.isArray(recipe.tags)
+      ? recipe.tags.join(',')
+      : typeof recipe.tags === 'string'
+        ? recipe.tags
+        : '');
 
     try {
-      const response = await fetch('/api/recipes', {
-        method: 'POST',
+      const url = initialRecipe ? `/api/recipes/${initialRecipe.slug}` : '/api/recipes';
+      const method = initialRecipe ? 'PUT' : 'POST';
+      const response = await fetch(url, {
+        method: method,
         body: formData,
       });
-      if (!response.ok) throw new Error('Failed to add recipe');
-      const newRecipe = await response.json();
-      addRecipe(newRecipe);
-      router.push('/');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to save recipe');
+      }
+      const savedRecipe = await response.json();
+      if (initialRecipe) {
+        updateRecipe(savedRecipe);
+        toast({
+          title: "Recipe updated",
+          description: "Your recipe has been successfully updated.",
+        })
+      } else {
+        addRecipe(savedRecipe);
+        toast({
+          title: "Recipe added",
+          description: "Your new recipe has been successfully added.",
+        })
+      }
+      router.push(`/recipes/${savedRecipe.slug}`);
     } catch (error) {
-      console.error('Error adding recipe:', error);
+      console.error('Error saving recipe:', error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to save recipe",
+        variant: "destructive",
+      })
     }
   };
+
+  useEffect(() => {
+    if (error) {
+      const timer = setTimeout(() => {
+        setError(null);
+      }, 5000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [error]);
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
@@ -162,12 +215,12 @@ export function RecipeForm() {
       </div>
       <div>
         <Label htmlFor="shortDescription">Short Description</Label>
-        <Input 
-          id="shortDescription" 
-          name="shortDescription" 
-          value={recipe.shortDescription} 
-          onChange={handleChange} 
-          required 
+        <Input
+          id="shortDescription"
+          name="shortDescription"
+          value={recipe.shortDescription}
+          onChange={handleChange}
+          required
           maxLength={100} // Limit the short description to 100 characters
         />
       </div>
@@ -220,7 +273,7 @@ export function RecipeForm() {
           <div key={index} className="flex items-start space-x-2 mt-2">
             <Textarea
               placeholder={`Step ${index + 1}`}
-              value={step}
+              value={step.content}
               onChange={(e) => handleStepChange(index, e.target.value)}
               className="flex-grow"
             />
@@ -276,7 +329,7 @@ export function RecipeForm() {
       </div>
       <div>
         <Label htmlFor="image">Recipe Image</Label>
-        <div 
+        <div
           onClick={handleImageClick}
           className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md cursor-pointer"
         >
@@ -291,11 +344,11 @@ export function RecipeForm() {
             <div className="flex text-sm text-gray-600">
               <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
                 <span>Upload a file</span>
-                <input 
-                  id="file-upload" 
-                  name="file-upload" 
-                  type="file" 
-                  className="sr-only" 
+                <input
+                  id="file-upload"
+                  name="file-upload"
+                  type="file"
+                  className="sr-only"
                   ref={fileInputRef}
                   onChange={handleImageChange}
                   accept="image/jpeg,image/png,image/webp"
@@ -309,7 +362,22 @@ export function RecipeForm() {
           </div>
         </div>
       </div>
-      <Button type="submit">Add Recipe</Button>
+      <Button type="submit">{initialRecipe ? 'Save Recipe' : 'Add Recipe'}</Button>
+      {error && (
+        <div className="fixed bottom-4 right-4 bg-white dark:bg-neutral-950 border border-red-500 text-red-700 px-7 py-3 rounded shadow-lg z-[100] transition-opacity duration-500 opacity-100">
+          <strong className="font-bold">Error: </strong>
+          <span className="block sm:inline">{error}</span>
+          <button
+            onClick={() => setError(null)}
+            className="absolute top-0 right-0 mt-2 mr-2 text-red-500 hover:text-red-700"
+            aria-label="Close error message"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+      )}
     </form>
   )
 }

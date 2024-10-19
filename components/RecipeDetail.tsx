@@ -1,17 +1,39 @@
+"use client";
+
 import { Badge } from "@/components/ui/badge"
 import { Recipe } from '../types/Recipe';
 import { RecipeActions } from './RecipeActions';
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 
 interface RecipeDetailProps {
-  recipe: Recipe;
+  initialRecipe: Recipe;
 }
 
-export function RecipeDetail({ recipe }: RecipeDetailProps) {
+export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
+  const [recipe, setRecipe] = useState(initialRecipe);
+  const router = useRouter();
+
+  useEffect(() => {
+    const fetchUpdatedRecipe = async () => {
+      try {
+        const response = await fetch(`/api/recipes/${initialRecipe.slug}`);
+        if (!response.ok) throw new Error('Failed to fetch updated recipe');
+        const updatedRecipe = await response.json();
+        setRecipe(updatedRecipe);
+      } catch (error) {
+        console.error('Error fetching updated recipe:', error);
+      }
+    };
+
+    fetchUpdatedRecipe();
+  }, [initialRecipe.slug]);
+
   return (
     <div className="max-w-3xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">{recipe.name}</h1>
-        <RecipeActions recipeId={recipe.id} />
+        <RecipeActions recipe={recipe} />
       </div>
       {recipe.shortDescription && <p className="text-lg mb-4">{recipe.shortDescription}</p>}
       <div className="flex space-x-4 mb-4">

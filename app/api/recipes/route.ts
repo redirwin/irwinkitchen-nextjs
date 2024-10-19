@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
+import { Prisma } from '@prisma/client'
 
 const prisma = new PrismaClient()
 
@@ -19,6 +20,7 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     const name = formData.get('name') as string;
+    const slug = formData.get('slug') as string;
     const shortDescription = formData.get('shortDescription') as string;
     const description = formData.get('description') as string;
     const cookingTime = formData.get('cookingTime') as string;
@@ -31,6 +33,7 @@ export async function POST(request: Request) {
     const recipe = await prisma.recipe.create({
       data: {
         name,
+        slug,
         shortDescription,
         description,
         cookingTime,
@@ -54,6 +57,11 @@ export async function POST(request: Request) {
 
     return NextResponse.json(recipe);
   } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError) {
+      if (error.code === 'P2002') {
+        return NextResponse.json({ error: 'A recipe with this name already exists.' }, { status: 409 });
+      }
+    }
     console.error('Error creating recipe:', error);
     return NextResponse.json({ error: 'Error creating recipe' }, { status: 500 });
   }

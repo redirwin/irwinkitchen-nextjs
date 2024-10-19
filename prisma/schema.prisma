@@ -18,6 +18,7 @@ datasource db {
 model Recipe {
   id               String       @id @default(uuid())
   name             String       @unique
+  slug  String @unique
   shortDescription String
   description      String
   ingredients      Ingredient[]

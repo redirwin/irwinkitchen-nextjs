@@ -6,19 +6,21 @@ import { Pencil, Trash } from "lucide-react";
 import { DeleteConfirmationModal } from "./DeleteConfirmationModal";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@clerk/nextjs";
+import { useToast } from "@/components/ui/use-toast";
 
 interface RecipeActionsProps {
-  recipeId: string;
+  recipe: Recipe;
 }
 
-export function RecipeActions({ recipeId }: RecipeActionsProps) {
+export function RecipeActions({ recipe }: RecipeActionsProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const router = useRouter();
   const { isSignedIn } = useAuth();
+  const { toast } = useToast();
 
   const handleDelete = async () => {
     try {
-      const response = await fetch(`/api/recipes/${recipeId}`, {
+      const response = await fetch(`/api/recipes/${recipe.slug}`, {
         method: 'DELETE',
       });
 
@@ -27,12 +29,24 @@ export function RecipeActions({ recipeId }: RecipeActionsProps) {
       }
 
       setIsDeleteModalOpen(false);
+      toast({
+        title: "Recipe deleted",
+        description: "Your recipe has been successfully deleted.",
+      });
       router.push('/');
       router.refresh();
     } catch (error) {
       console.error('Error deleting recipe:', error);
-      // You might want to show an error message to the user here
+      toast({
+        title: "Error",
+        description: "Failed to delete recipe. Please try again.",
+        variant: "destructive",
+      });
     }
+  };
+
+  const handleEdit = () => {
+    router.push(`/edit-recipe/${recipe.slug}`);
   };
 
   if (!isSignedIn) {
@@ -42,7 +56,7 @@ export function RecipeActions({ recipeId }: RecipeActionsProps) {
   return (
     <>
       <div className="space-x-2">
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" onClick={handleEdit}>
           <Pencil className="h-4 w-4 mr-2" />
           Edit
         </Button>

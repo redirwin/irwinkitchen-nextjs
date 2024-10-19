@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { RecipeProvider } from '@/lib/recipeContext';
+import { Toaster } from "@/components/ui/toaster";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -33,8 +34,9 @@ export default function RootLayout({
           className={`${geistSans.variable} ${geistMono.variable} antialiased`}
         >
           <RecipeProvider>
-            <Layout>{children}</Layout>
+            <Layout className="bg-white">{children}</Layout>
           </RecipeProvider>
+          <Toaster />
         </body>
       </html>
     </ClerkProvider>

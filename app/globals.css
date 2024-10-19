@@ -17,3 +17,9 @@ body {
     --radius: 0.5rem;
   }
 }
+
+li[role="status"] {
+  background-color: white;
+}
+
+ 

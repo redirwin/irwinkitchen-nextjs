@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { Prisma } from '@prisma/client';
 
 export async function DELETE(
   request: Request,
@@ -37,12 +38,12 @@ export async function DELETE(
 
 export async function GET(
   request: Request,
-  { params }: { params: { id: string } }
+  { params }: { params: { slug: string } }
 ) {
   try {
-    const { id } = params;
+    const { slug } = params;
     const recipe = await prisma.recipe.findUnique({
-      where: { id },
+      where: { slug },
       include: { ingredients: true, steps: true, tags: true },
     });
 
@@ -77,23 +78,18 @@ export async function PUT(
     };
 
     const recipe = await prisma.recipe.update({
-      where: { slug: params.slug },
+      where: { slug },
       data: {
-        name: updatedRecipe.name,
-        shortDescription: updatedRecipe.shortDescription,
-        description: updatedRecipe.description,
-        cookingTime: updatedRecipe.cookingTime,
-        difficulty: updatedRecipe.difficulty,
-        servingSize: updatedRecipe.servingSize,
+        ...updatedRecipe,
         ingredients: {
           deleteMany: {},
-          create: updatedRecipe.ingredients,
+          create: updatedRecipe.ingredients.map(({ id, recipeId, ...rest }) => rest),
         },
         steps: {
           deleteMany: {},
-          create: updatedRecipe.steps.map((step, index) => ({
+          create: updatedRecipe.steps.map(({ id, recipeId, ...step }, index) => ({
             order: index + 1,
-            content: step,
+            content: step.content,
           })),
         },
         tags: {
@@ -110,6 +106,9 @@ export async function PUT(
     return NextResponse.json(recipe);
   } catch (error) {
     console.error('Error updating recipe:', error);
-    return NextResponse.json({ error: 'Error updating recipe: ' + error.message }, { status: 500 });
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+      return NextResponse.json({ error: 'A recipe with this name already exists' }, { status: 400 });
+    }
+    return NextResponse.json({ error: 'Error updating recipe' }, { status: 500 });
   }
 }
