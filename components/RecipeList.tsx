@@ -8,11 +8,13 @@ import { useEffect, useState } from 'react';
 import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
 import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/components/ui/pagination"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
 export default function RecipeList() {
   const { recipes, setRecipes } = useRecipes();
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
+  const [selectedTag, setSelectedTag] = useState<string | null>(null);
   const recipesPerPage = 9;
 
   useEffect(() => {
@@ -32,11 +34,25 @@ export default function RecipeList() {
     fetchRecipes();
   }, [setRecipes]);
 
+  // Get unique tags from all recipes
+  const allTags = Array.from(new Set(recipes.flatMap(recipe => 
+    Array.isArray(recipe.tags) ? recipe.tags.map(tag => tag.name) : recipe.tags.split(',').map(tag => tag.trim())
+  ))).sort();
+
+  // Filter recipes based on selected tag
+  const filteredRecipes = selectedTag
+    ? recipes.filter(recipe => 
+        (Array.isArray(recipe.tags) 
+          ? recipe.tags.some(tag => tag.name === selectedTag)
+          : recipe.tags.split(',').map(tag => tag.trim()).includes(selectedTag))
+      )
+    : recipes;
+
   // Calculate pagination
   const indexOfLastRecipe = currentPage * recipesPerPage;
   const indexOfFirstRecipe = indexOfLastRecipe - recipesPerPage;
-  const currentRecipes = recipes.slice(indexOfFirstRecipe, indexOfLastRecipe);
-  const totalPages = Math.ceil(recipes.length / recipesPerPage);
+  const currentRecipes = filteredRecipes.slice(indexOfFirstRecipe, indexOfLastRecipe);
+  const totalPages = Math.ceil(filteredRecipes.length / recipesPerPage);
 
   if (isLoading) {
     return (
@@ -58,6 +74,22 @@ export default function RecipeList() {
 
   return (
     <>
+      <div className="mb-6">
+        <Select onValueChange={(value) => {
+          setSelectedTag(value === 'all' ? null : value);
+          setCurrentPage(1);  // Reset to first page when changing filter
+        }}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Filter by tag" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">All Tags</SelectItem>
+            {allTags.map(tag => (
+              <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {currentRecipes.map((recipe) => (
           <Link href={`/recipes/${recipe.slug}`} key={recipe.id} className="h-full">
@@ -74,11 +106,15 @@ export default function RecipeList() {
                   />
                 </div>
               )}
-              <CardHeader>
-                <CardTitle>{recipe.name}</CardTitle>
-                {recipe.shortDescription && <CardDescription>{recipe.shortDescription}</CardDescription>}
+              <CardHeader className="flex-grow">
+                <CardTitle className="line-clamp-2">{recipe.name}</CardTitle>
+                {recipe.shortDescription && (
+                  <CardDescription className="line-clamp-3">
+                    {recipe.shortDescription}
+                  </CardDescription>
+                )}
               </CardHeader>
-              <CardContent className="flex-grow">
+              <CardContent>
                 <div className="flex flex-col gap-1 text-sm text-muted-foreground">
                   {recipe.cookingTime && <span>Cooking time: {recipe.cookingTime}</span>}
                   {recipe.difficulty && <span>Difficulty: {recipe.difficulty}</span>}
