@@ -1,5 +1,6 @@
 import { ClerkProvider } from "@clerk/nextjs";
-import { Layout } from "@/components/Layout";
+import { Header } from "@/components/Header";
+import { Footer } from "@/components/Footer";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
@@ -31,10 +32,14 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body
-          className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+          className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-white flex flex-col dark:bg-neutral-950`}
         >
           <RecipeProvider>
-            <Layout className="bg-white">{children}</Layout>
+            <Header className="z-10" />
+            <main className="flex-1 container mx-auto max-w-4xl py-6 relative z-0">
+              {children}
+            </main>
+            <Footer className="z-10" />
           </RecipeProvider>
           <Toaster />
         </body>
