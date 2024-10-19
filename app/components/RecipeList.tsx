@@ -97,6 +97,7 @@ export default function RecipeList() {
 
   const handleClearSearch = () => {
     setSearchQuery('');
+    setSelectedTags([]);
     setCurrentPage(1);
   };
 
@@ -153,19 +154,27 @@ export default function RecipeList() {
         )}
       </div>
 
-      {filteredRecipes.length === 0 ? (
+      {recipes.length === 0 ? (
         <div className="text-center p-8 bg-muted rounded-lg">
           <p className="text-xl font-semibold mb-2">No recipes found</p>
           <p className="text-muted-foreground mb-4">
-            {searchQuery 
-              ? "No recipes match your search criteria. Try adjusting your search terms."
-              : "It looks like there aren't any recipes yet. Why not add some to get started?"}
+            It looks like there aren't any recipes yet. Why not add some to get started?
           </p>
-          {searchQuery && (
-            <Button onClick={handleClearSearch}>
-              Show All Recipes
+          <Link href="/add-recipe" passHref>
+            <Button as="a">
+              Add Your First Recipe
             </Button>
-          )}
+          </Link>
+        </div>
+      ) : filteredRecipes.length === 0 ? (
+        <div className="text-center p-8 bg-muted rounded-lg">
+          <p className="text-xl font-semibold mb-2">No recipes found</p>
+          <p className="text-muted-foreground mb-4">
+            No recipes match your criteria. Try adjusting your tags or search terms.
+          </p>
+          <Button onClick={handleClearSearch}>
+            Show All Recipes
+          </Button>
         </div>
       ) : (
         <>
