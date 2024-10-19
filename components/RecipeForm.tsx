@@ -10,7 +10,6 @@ import { PlusCircledIcon, Cross2Icon } from "@radix-ui/react-icons"
 import { useRouter } from "next/navigation"
 import { useRecipes } from '@/lib/recipeContext'
 import { useToast } from "@/components/ui/use-toast"
-import { DeleteConfirmationModal } from "@/components/DeleteConfirmationModal"
 import Image from 'next/image';
 import { Loader2 } from 'lucide-react';
 
@@ -22,13 +21,14 @@ interface RecipeFormProps {
 
 export function RecipeForm({ initialRecipe, slug, onUpdate }: RecipeFormProps) {
   const router = useRouter()
-  const { addRecipe, updateRecipe, deleteRecipe } = useRecipes()
+  const { addRecipe, updateRecipe } = useRecipes()
   const { toast } = useToast()
   const [recipe, setRecipe] = useState(() => {
     if (initialRecipe) {
       return {
         ...initialRecipe,
-        tags: initialRecipe.tags.map(tag => tag.name).join(', ')
+        tags: initialRecipe.tags.map(tag => tag.name).join(', '),
+        steps: initialRecipe.steps.map(step => step.content)
       };
     }
     return {
@@ -47,7 +47,6 @@ export function RecipeForm({ initialRecipe, slug, onUpdate }: RecipeFormProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(initialRecipe?.image || null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
   const [hasExistingImage, setHasExistingImage] = useState(!!initialRecipe?.imageUrl)
   const [imageToRemove, setImageToRemove] = useState(false)
   const [isLoading, setIsLoading] = useState(!!initialRecipe);
@@ -90,10 +89,8 @@ export function RecipeForm({ initialRecipe, slug, onUpdate }: RecipeFormProps) {
   const handleStepChange = (index: number, value: string) => {
     setRecipe(prev => ({
       ...prev,
-      steps: prev.steps.map((step, i) =>
-        i === index ? value : step
-      )
-    }))
+      steps: prev.steps.map((step, i) => i === index ? value : step)
+    }));
   }
 
   const addStep = () => {
@@ -175,13 +172,17 @@ export function RecipeForm({ initialRecipe, slug, onUpdate }: RecipeFormProps) {
     setError(null);
     const formData = new FormData(e.currentTarget);
 
+    // Format ingredients
     formData.set('ingredients', JSON.stringify(recipe.ingredients.map(({ id, recipeId, ...rest }) => rest)));
-    formData.set('steps', JSON.stringify(recipe.steps.map(({ id, recipeId, ...rest }) => rest)));
-    formData.set('tags', Array.isArray(recipe.tags)
-      ? recipe.tags.join(',')
-      : typeof recipe.tags === 'string'
-        ? recipe.tags
-        : '');
+
+    // Format steps
+    formData.set('steps', JSON.stringify(recipe.steps.map((step, index) => ({
+      order: index + 1,
+      content: step
+    }))));
+
+    // Format tags
+    formData.set('tags', recipe.tags);
 
     if (imageToRemove) {
       formData.append('removeImage', 'true');
@@ -196,33 +197,27 @@ export function RecipeForm({ initialRecipe, slug, onUpdate }: RecipeFormProps) {
         method: method,
         body: formData,
       });
+
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.error || 'Failed to save recipe');
       }
+
       const savedRecipe = await response.json();
-      if (initialRecipe) {
-        updateRecipe(savedRecipe);
-        onUpdate?.(savedRecipe);  // Call the onUpdate function with the saved recipe
-        toast({
-          title: "Recipe updated",
-          description: "Your recipe has been successfully updated.",
-        })
+
+      toast({
+        title: initialRecipe ? "Recipe Updated" : "Recipe Added",
+        description: "Your recipe has been saved successfully.",
+      })
+
+      if (initialRecipe && onUpdate) {
+        onUpdate(savedRecipe);
       } else {
-        addRecipe(savedRecipe);
-        toast({
-          title: "Recipe added",
-          description: "Your new recipe has been successfully added.",
-        })
+        router.push(`/recipes/${savedRecipe.slug}`);
       }
-      router.push(`/recipes/${savedRecipe.slug}`);
     } catch (error) {
       console.error('Error saving recipe:', error);
-      toast({
-        title: "Error",
-        description: error.message || "Failed to save recipe",
-        variant: "destructive",
-      })
+      setError(error.message || 'An error occurred while saving the recipe');
     }
   };
 
@@ -231,25 +226,6 @@ export function RecipeForm({ initialRecipe, slug, onUpdate }: RecipeFormProps) {
       router.push(`/recipes/${slug}`);
     } else {
       router.push('/');
-    }
-  };
-
-  const handleDelete = async () => {
-    try {
-      await fetch(`/api/recipes/${slug}`, { method: 'DELETE' });
-      deleteRecipe(slug);
-      toast({
-        title: "Recipe deleted",
-        description: "Your recipe has been successfully deleted.",
-      });
-      router.push('/');
-    } catch (error) {
-      console.error('Error deleting recipe:', error);
-      toast({
-        title: "Error",
-        description: "Failed to delete recipe",
-        variant: "destructive",
-      });
     }
   };
 
@@ -425,11 +401,11 @@ export function RecipeForm({ initialRecipe, slug, onUpdate }: RecipeFormProps) {
         <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
           {hasExistingImage ? (
             <div className="space-y-1 text-center">
-              <Image 
-                src={imagePreview || initialRecipe?.imageUrl || ''} 
-                alt="Recipe preview" 
-                width={128} 
-                height={128} 
+              <Image
+                src={imagePreview || initialRecipe?.imageUrl || ''}
+                alt="Recipe preview"
+                width={128}
+                height={128}
                 className="mx-auto object-cover"
               />
               <div className="flex justify-center">
@@ -466,20 +442,11 @@ export function RecipeForm({ initialRecipe, slug, onUpdate }: RecipeFormProps) {
         </div>
       </div>
       <div className="flex justify-between items-center">
-        {initialRecipe && (
-          <Button type="button" variant="destructive" onClick={() => setIsDeleteModalOpen(true)}>Delete</Button>
-        )}
         <div>
           <Button type="button" variant="outline" onClick={handleCancel} className="mr-2">Cancel</Button>
           <Button type="submit">{initialRecipe ? 'Save Recipe' : 'Add Recipe'}</Button>
         </div>
       </div>
-
-      <DeleteConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={handleDelete}
-      />
 
       {error && (
         <div className="fixed bottom-4 right-4 bg-white dark:bg-neutral-950 border border-red-500 text-red-700 px-7 py-3 rounded shadow-lg z-[100] transition-opacity duration-500 opacity-100">
