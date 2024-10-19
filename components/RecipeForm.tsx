@@ -12,13 +12,15 @@ import { useRecipes } from '@/lib/recipeContext'
 import { useToast } from "@/components/ui/use-toast"
 import { DeleteConfirmationModal } from "@/components/DeleteConfirmationModal"
 import Image from 'next/image';
+import { Loader2 } from 'lucide-react';
 
 interface RecipeFormProps {
   initialRecipe?: Recipe;
   slug?: string;
+  onUpdate?: (updatedRecipe: Recipe) => void;
 }
 
-export function RecipeForm({ initialRecipe, slug }: RecipeFormProps) {
+export function RecipeForm({ initialRecipe, slug, onUpdate }: RecipeFormProps) {
   const router = useRouter()
   const { addRecipe, updateRecipe, deleteRecipe } = useRecipes()
   const { toast } = useToast()
@@ -46,6 +48,9 @@ export function RecipeForm({ initialRecipe, slug }: RecipeFormProps) {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
+  const [hasExistingImage, setHasExistingImage] = useState(!!initialRecipe?.imageUrl)
+  const [imageToRemove, setImageToRemove] = useState(false)
+  const [isLoading, setIsLoading] = useState(!!initialRecipe);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -131,27 +136,38 @@ export function RecipeForm({ initialRecipe, slug }: RecipeFormProps) {
       // Create a URL for the file
       const objectUrl = URL.createObjectURL(file)
 
-      // Check image dimensions
-      const img = document.createElement('img')
-      img.onload = () => {
-        URL.revokeObjectURL(objectUrl)
-        if (img.width > 3000 || img.height > 3000) {
-          alert("Image dimensions are too large. Maximum size is 3000x3000 pixels.")
-          return
+      // Use FileReader to check image dimensions
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const img = document.createElement('img')
+        img.onload = () => {
+          if (img.width > 3000 || img.height > 3000) {
+            URL.revokeObjectURL(objectUrl)
+            alert("Image dimensions are too large. Maximum size is 3000x3000 pixels.")
+            return
+          }
+          setRecipe(prev => ({ ...prev, image: file }))
+          setImagePreview(objectUrl)
+          setHasExistingImage(true)
         }
-        setRecipe(prev => ({ ...prev, image: file }))
-        setImagePreview(objectUrl)
+        img.src = event.target?.result as string
       }
-      img.onerror = () => {
-        URL.revokeObjectURL(objectUrl)
-        alert("Error loading image. Please try again.")
-      }
-      img.src = objectUrl
+      reader.readAsDataURL(file)
     }
   }
 
   const handleImageClick = () => {
     fileInputRef.current?.click()
+  }
+
+  const handleRemoveImage = () => {
+    setRecipe(prev => ({ ...prev, image: null }));
+    setImagePreview(null);
+    setHasExistingImage(false);
+    setImageToRemove(true);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -167,7 +183,9 @@ export function RecipeForm({ initialRecipe, slug }: RecipeFormProps) {
         ? recipe.tags
         : '');
 
-    if (recipe.image) {
+    if (imageToRemove) {
+      formData.append('removeImage', 'true');
+    } else if (recipe.image) {
       formData.append('image', recipe.image);
     }
 
@@ -185,6 +203,7 @@ export function RecipeForm({ initialRecipe, slug }: RecipeFormProps) {
       const savedRecipe = await response.json();
       if (initialRecipe) {
         updateRecipe(savedRecipe);
+        onUpdate?.(savedRecipe);  // Call the onUpdate function with the saved recipe
         toast({
           title: "Recipe updated",
           description: "Your recipe has been successfully updated.",
@@ -243,6 +262,43 @@ export function RecipeForm({ initialRecipe, slug }: RecipeFormProps) {
       return () => clearTimeout(timer);
     }
   }, [error]);
+
+  useEffect(() => {
+    const fetchRecipe = async () => {
+      if (initialRecipe) {
+        setIsLoading(true);
+        try {
+          // Simulate fetching recipe details if needed
+          // In a real scenario, you might want to fetch fresh data from the API
+          setRecipe({
+            ...initialRecipe,
+            tags: initialRecipe.tags.map(tag => tag.name).join(', ')
+          });
+          setImagePreview(initialRecipe.imageUrl || null);
+          setHasExistingImage(!!initialRecipe.imageUrl);
+        } catch (error) {
+          console.error('Error fetching recipe:', error);
+          toast({
+            title: "Error",
+            description: "Failed to load recipe details",
+            variant: "destructive",
+          });
+        } finally {
+          setIsLoading(false);
+        }
+      }
+    };
+    fetchRecipe();
+  }, [initialRecipe, toast]);
+
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center h-64">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        <p className="mt-4 text-lg text-muted-foreground">Loading recipe details...</p>
+      </div>
+    );
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
@@ -366,46 +422,56 @@ export function RecipeForm({ initialRecipe, slug }: RecipeFormProps) {
       </div>
       <div>
         <Label htmlFor="image">Recipe Image</Label>
-        <div
-          onClick={handleImageClick}
-          className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md cursor-pointer"
-        >
-          <div className="space-y-1 text-center">
-            {imagePreview ? (
-              <Image src={imagePreview} alt="Recipe preview" width={128} height={128} className="mx-auto object-cover" />
-            ) : (
+        <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+          {hasExistingImage ? (
+            <div className="space-y-1 text-center">
+              <Image 
+                src={imagePreview || initialRecipe?.imageUrl || ''} 
+                alt="Recipe preview" 
+                width={128} 
+                height={128} 
+                className="mx-auto object-cover"
+              />
+              <div className="flex justify-center">
+                <Button type="button" onClick={handleRemoveImage} variant="outline" size="sm">
+                  Remove
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-1 text-center">
               <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
                 <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
               </svg>
-            )}
-            <div className="flex text-sm text-gray-600">
-              <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-                <span>Upload a file</span>
-                <input
-                  id="file-upload"
-                  name="file-upload"
-                  type="file"
-                  className="sr-only"
-                  ref={fileInputRef}
-                  onChange={handleImageChange}
-                  accept="image/jpeg,image/png,image/webp"
-                />
-              </label>
-              <p className="pl-1">or drag and drop</p>
+              <div className="flex text-sm text-gray-600">
+                <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                  <span>Upload a file</span>
+                  <input
+                    id="file-upload"
+                    name="file-upload"
+                    type="file"
+                    className="sr-only"
+                    ref={fileInputRef}
+                    onChange={handleImageChange}
+                    accept="image/jpeg,image/png,image/webp"
+                  />
+                </label>
+                <p className="pl-1">or drag and drop</p>
+              </div>
+              <p className="text-xs text-gray-500">
+                JPEG, PNG, WebP up to 10MB and 3000x3000px
+              </p>
             </div>
-            <p className="text-xs text-gray-500">
-              JPEG, PNG, WebP up to 10MB and 3000x3000px
-            </p>
-          </div>
+          )}
         </div>
       </div>
       <div className="flex justify-between items-center">
-        <Button type="submit">{initialRecipe ? 'Save Recipe' : 'Add Recipe'}</Button>
+        {initialRecipe && (
+          <Button type="button" variant="destructive" onClick={() => setIsDeleteModalOpen(true)}>Delete</Button>
+        )}
         <div>
           <Button type="button" variant="outline" onClick={handleCancel} className="mr-2">Cancel</Button>
-          {initialRecipe && (
-            <Button type="button" variant="destructive" onClick={() => setIsDeleteModalOpen(true)}>Delete</Button>
-          )}
+          <Button type="submit">{initialRecipe ? 'Save Recipe' : 'Add Recipe'}</Button>
         </div>
       </div>
 

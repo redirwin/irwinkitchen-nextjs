@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
-import { writeFile } from 'fs/promises';
+import { writeFile, unlink } from 'fs/promises';
 import path from 'path';
 
 export async function DELETE(
@@ -80,8 +80,25 @@ export async function PUT(
     };
 
     let imageUrl = undefined;
+    const removeImage = formData.get('removeImage') === 'true';
     const imageFile = formData.get('image') as File | null;
-    if (imageFile) {
+
+    if (removeImage) {
+      // Get the current recipe to find the image URL
+      const currentRecipe = await prisma.recipe.findUnique({
+        where: { slug },
+        select: { imageUrl: true },
+      });
+
+      if (currentRecipe?.imageUrl) {
+        // Remove the file from the file system
+        const filePath = path.join(process.cwd(), 'public', currentRecipe.imageUrl);
+        await unlink(filePath);
+      }
+
+      // Set imageUrl to null in the database
+      imageUrl = null;
+    } else if (imageFile) {
       const bytes = await imageFile.arrayBuffer();
       const buffer = Buffer.from(bytes);
 
