@@ -242,6 +242,30 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
     }
   };
 
+  const handleDelete = async () => {
+    try {
+      const response = await fetch(`/api/recipes/${slug}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete recipe');
+      }
+
+      toast({
+        title: "Recipe Deleted",
+        description: "Your recipe has been successfully deleted.",
+      });
+
+      router.push('/'); // Redirect to home page after deletion
+    } catch (error) {
+      console.error('Error deleting recipe:', error);
+      setError(error.message || 'An error occurred while deleting the recipe');
+    } finally {
+      setShowDeleteModal(false);
+    }
+  };
+
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => {
@@ -291,11 +315,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
         </DialogHeader>
         <DialogFooter>
           <Button variant="outline" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
-          <Button variant="destructive" onClick={() => {
-            // Placeholder for future delete functionality
-            setShowDeleteModal(false);
-            console.log('Delete action placeholder');
-          }}>Delete</Button>
+          <Button variant="destructive" onClick={handleDelete}>Delete</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
