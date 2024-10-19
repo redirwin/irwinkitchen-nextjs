@@ -2,10 +2,12 @@
 
 import { Badge } from "@/components/ui/badge"
 import { Recipe } from '../types/Recipe';
-import { RecipeActions } from './RecipeActions';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { Button } from "@/components/ui/button";
+import { Pencil } from "lucide-react";
+import { useAuth } from "@clerk/nextjs";
 
 interface RecipeDetailProps {
   initialRecipe: Recipe;
@@ -14,7 +16,8 @@ interface RecipeDetailProps {
 export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
   const [recipe, setRecipe] = useState(initialRecipe);
   const router = useRouter();
-
+  const { isSignedIn } = useAuth();
+  
   useEffect(() => {
     const fetchUpdatedRecipe = async () => {
       try {
@@ -29,6 +32,10 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
 
     fetchUpdatedRecipe();
   }, [initialRecipe.slug]);
+
+  const handleEdit = () => {
+    router.push(`/edit-recipe/${recipe.slug}`);
+  };
 
   return (
     <div className="max-w-3xl mx-auto p-6">
@@ -45,7 +52,12 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
       )}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">{recipe.name}</h1>
-        <RecipeActions recipe={recipe} showDelete={false} />
+        {isSignedIn && (
+          <Button variant="outline" size="sm" onClick={handleEdit}>
+            <Pencil className="h-4 w-4 mr-2" />
+            Edit
+          </Button>
+        )}
       </div>
       {recipe.shortDescription && <p className="text-lg mb-4">{recipe.shortDescription}</p>}
       <div className="flex space-x-4 mb-4">

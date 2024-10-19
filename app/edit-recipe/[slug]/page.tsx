@@ -42,7 +42,7 @@ export default function EditRecipePage({ params }: { params: { slug: string } })
   return (
     <div className="container mx-auto px-4">
       <h1 className="text-3xl font-bold mb-6">Edit Recipe</h1>
-      <RecipeForm initialRecipe={recipe} slug={params.slug} onUpdate={handleRecipeUpdate} />
+      <RecipeForm initialRecipe={recipe} slug={params.slug} />
     </div>
   );
 }
