@@ -8,6 +8,7 @@ import Image from 'next/image';
 import { Button } from "@/app/components/ui/button";
 import { Pencil } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
+import { ArrowLeft } from "lucide-react";
 
 interface RecipeDetailProps {
   initialRecipe: Recipe;
@@ -35,6 +36,17 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
 
   const handleEdit = () => {
     router.push(`/edit-recipe/${recipe.slug}`);
+  };
+
+  const handleBack = () => {
+    const savedState = sessionStorage.getItem('recipeListState');
+    if (savedState) {
+      const { currentPage, selectedTags, searchQuery } = JSON.parse(savedState);
+      // Navigate back to the home page
+      router.push('/');
+    } else {
+      router.push('/');
+    }
   };
 
   return (
@@ -106,6 +118,13 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
         </>
       )}
       {recipe.description && <p className="text-lg mb-4">{recipe.description}</p>}
+      
+      <div className="mt-8">
+        <Button variant="outline" onClick={handleBack}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+      </div>
     </div>
   );
 }

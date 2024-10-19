@@ -4,25 +4,36 @@ import Link from 'next/link'
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/app/components/ui/card"
 import { Badge } from "@/app/components/ui/badge"
 import { useRecipes } from '@/lib/recipeContext';
-import { useEffect, useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
 import Image from 'next/image';
-import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/app/components/ui/pagination"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select"
+import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/app/components/ui/pagination"
 import { X } from "lucide-react"
 import { Button } from "@/app/components/ui/button"
 import { Input } from "@/app/components/ui/input"
 import { Recipe } from '@/types/Recipe'; // Make sure this path is correct
+import { useRouter, useSearchParams } from 'next/navigation';
 
 export default function RecipeList() {
   const { recipes, setRecipes } = useRecipes();
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const recipesPerPage = 6;
   const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const recipesPerPage = 6;
 
   useEffect(() => {
+    // Read URL parameters only on initial load
+    const page = searchParams.get('page');
+    const tags = searchParams.get('tags');
+    const search = searchParams.get('search');
+
+    if (page) setCurrentPage(parseInt(page, 10));
+    if (tags) setSelectedTags(tags.split(','));
+    if (search) setSearchQuery(search);
+
     const fetchRecipes = async () => {
       setIsLoading(true);
       try {
@@ -37,7 +48,29 @@ export default function RecipeList() {
       }
     };
     fetchRecipes();
-  }, [setRecipes]);
+  }, [searchParams, setRecipes]);
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1);
+  };
+
+  const toggleTag = (tag: string) => {
+    setSelectedTags(prev => 
+      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
+    );
+    setCurrentPage(1);
+  };
+
+  const saveStateAndNavigate = (slug: string) => {
+    const state = {
+      currentPage,
+      selectedTags,
+      searchQuery
+    };
+    sessionStorage.setItem('recipeListState', JSON.stringify(state));
+    router.push(`/recipes/${slug}`);
+  };
 
   // Get unique tags from all recipes
   const allTags = Array.from(new Set(recipes.flatMap(recipe => 
@@ -72,13 +105,6 @@ export default function RecipeList() {
   const currentRecipes = filteredRecipes.slice(indexOfFirstRecipe, indexOfLastRecipe);
   const totalPages = Math.ceil(filteredRecipes.length / recipesPerPage);
 
-  const toggleTag = (tag: string) => {
-    setSelectedTags(prev => 
-      prev.includes(tag) ? prev.filter(t => t !== tag) : [...prev, tag]
-    );
-    setCurrentPage(1);
-  };
-
   const resetTags = () => {
     setSelectedTags([]);
     setCurrentPage(1);
@@ -90,16 +116,25 @@ export default function RecipeList() {
     toggleTag(tag);
   };
 
-  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSearchQuery(e.target.value);
-    setCurrentPage(1); // Reset to first page when search query changes
-  };
-
   const handleClearSearch = () => {
     setSearchQuery('');
     setSelectedTags([]);
     setCurrentPage(1);
   };
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const pageParam = urlParams.get('page');
+    const tagsParam = urlParams.get('tags');
+    const searchParam = urlParams.get('search');
+
+    if (pageParam) setCurrentPage(parseInt(pageParam, 10));
+    if (tagsParam) setSelectedTags(tagsParam.split(','));
+    if (searchParam) setSearchQuery(searchParam);
+
+    // Clear the saved state after using it
+    sessionStorage.removeItem('recipeListState');
+  }, []);
 
   if (isLoading) {
     return (
@@ -180,8 +215,12 @@ export default function RecipeList() {
         <>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {currentRecipes.map((recipe) => (
-              <Link href={`/recipes/${recipe.slug}`} key={recipe.id} className="h-full">
-                <Card className="cursor-pointer shadow-md hover:shadow-lg transition-all duration-300 ease-in-out hover:-translate-y-1 h-full flex flex-col">
+              <div
+                key={recipe.id}
+                className="h-full cursor-pointer"
+                onClick={() => saveStateAndNavigate(recipe.slug)}
+              >
+                <Card className="shadow-md hover:shadow-lg transition-all duration-300 ease-in-out hover:-translate-y-1 h-full flex flex-col">
                   {recipe.imageUrl && (
                     <div className="relative w-full h-48">
                       <Image 
@@ -239,7 +278,7 @@ export default function RecipeList() {
                     </div>
                   </CardFooter>
                 </Card>
-              </Link>
+              </div>
             ))}
           </div>
 
