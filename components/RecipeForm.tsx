@@ -11,6 +11,7 @@ import { useRouter } from "next/navigation"
 import { useRecipes } from '@/lib/recipeContext'
 import { useToast } from "@/components/ui/use-toast"
 import { DeleteConfirmationModal } from "@/components/DeleteConfirmationModal"
+import Image from 'next/image';
 
 interface RecipeFormProps {
   initialRecipe?: Recipe;
@@ -127,22 +128,25 @@ export function RecipeForm({ initialRecipe, slug }: RecipeFormProps) {
         return
       }
 
+      // Create a URL for the file
+      const objectUrl = URL.createObjectURL(file)
+
       // Check image dimensions
-      const img = new Image()
+      const img = document.createElement('img')
       img.onload = () => {
-        URL.revokeObjectURL(img.src)
-        if (img.width > 1024 || img.height > 1024) {
-          alert("Image dimensions are too large. Maximum size is 1024x1024 pixels.")
+        URL.revokeObjectURL(objectUrl)
+        if (img.width > 3000 || img.height > 3000) {
+          alert("Image dimensions are too large. Maximum size is 3000x3000 pixels.")
           return
         }
-
         setRecipe(prev => ({ ...prev, image: file }))
-        setImagePreview(URL.createObjectURL(file))
+        setImagePreview(objectUrl)
       }
       img.onerror = () => {
+        URL.revokeObjectURL(objectUrl)
         alert("Error loading image. Please try again.")
       }
-      img.src = URL.createObjectURL(file)
+      img.src = objectUrl
     }
   }
 
@@ -162,6 +166,10 @@ export function RecipeForm({ initialRecipe, slug }: RecipeFormProps) {
       : typeof recipe.tags === 'string'
         ? recipe.tags
         : '');
+
+    if (recipe.image) {
+      formData.append('image', recipe.image);
+    }
 
     try {
       const url = initialRecipe ? `/api/recipes/${initialRecipe.slug}` : '/api/recipes';
@@ -364,7 +372,7 @@ export function RecipeForm({ initialRecipe, slug }: RecipeFormProps) {
         >
           <div className="space-y-1 text-center">
             {imagePreview ? (
-              <img src={imagePreview} alt="Recipe preview" className="mx-auto h-32 w-32 object-cover" />
+              <Image src={imagePreview} alt="Recipe preview" width={128} height={128} className="mx-auto object-cover" />
             ) : (
               <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
                 <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
@@ -386,7 +394,7 @@ export function RecipeForm({ initialRecipe, slug }: RecipeFormProps) {
               <p className="pl-1">or drag and drop</p>
             </div>
             <p className="text-xs text-gray-500">
-              JPEG, PNG, WebP up to 10MB and 1024x1024px
+              JPEG, PNG, WebP up to 10MB and 3000x3000px
             </p>
           </div>
         </div>

@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
+import { writeFile } from 'fs/promises';
+import path from 'path';
 
 export async function DELETE(
   request: Request,
@@ -77,10 +79,24 @@ export async function PUT(
       tags: (formData.get('tags') as string).split(',').map(tag => tag.trim()).filter(Boolean),
     };
 
+    let imageUrl = undefined;
+    const imageFile = formData.get('image') as File | null;
+    if (imageFile) {
+      const bytes = await imageFile.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+
+      // Save the file to the public directory
+      const fileName = `recipe-${slug}-${Date.now()}.jpg`;
+      const filePath = path.join(process.cwd(), 'public', 'images', 'recipes', fileName);
+      await writeFile(filePath, buffer);
+      imageUrl = `/images/recipes/${fileName}`;
+    }
+
     const recipe = await prisma.recipe.update({
       where: { slug },
       data: {
         ...updatedRecipe,
+        imageUrl: imageUrl,
         ingredients: {
           deleteMany: {},
           create: updatedRecipe.ingredients.map(({ id, recipeId, ...rest }) => rest),

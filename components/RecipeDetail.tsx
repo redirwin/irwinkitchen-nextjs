@@ -5,6 +5,7 @@ import { Recipe } from '../types/Recipe';
 import { RecipeActions } from './RecipeActions';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 
 interface RecipeDetailProps {
   initialRecipe: Recipe;
@@ -31,6 +32,17 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
 
   return (
     <div className="max-w-3xl mx-auto p-6">
+      {recipe.imageUrl && (
+        <div className="relative w-full h-64 mb-6">
+          <Image 
+            src={recipe.imageUrl} 
+            alt={recipe.name} 
+            layout="fill"
+            objectFit="cover"
+            className="rounded-lg"
+          />
+        </div>
+      )}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">{recipe.name}</h1>
         <RecipeActions recipe={recipe} showDelete={false} />
