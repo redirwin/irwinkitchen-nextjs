@@ -12,14 +12,16 @@ import { useRecipes } from '@/lib/recipeContext'
 import { useToast } from "@/components/ui/use-toast"
 import Image from 'next/image';
 import { Loader2 } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 
 interface RecipeFormProps {
   initialRecipe?: Recipe;
   slug?: string;
   onUpdate?: (updatedRecipe: Recipe) => void;
+  isEditing?: boolean;
 }
 
-export function RecipeForm({ initialRecipe, slug, onUpdate }: RecipeFormProps) {
+export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }: RecipeFormProps) {
   const router = useRouter()
   const { addRecipe, updateRecipe } = useRecipes()
   const { toast } = useToast()
@@ -50,6 +52,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate }: RecipeFormProps) {
   const [hasExistingImage, setHasExistingImage] = useState(!!initialRecipe?.imageUrl)
   const [imageToRemove, setImageToRemove] = useState(false)
   const [isLoading, setIsLoading] = useState(!!initialRecipe);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -277,6 +280,27 @@ export function RecipeForm({ initialRecipe, slug, onUpdate }: RecipeFormProps) {
     fetchRecipe();
   }, [initialRecipe, toast]);
 
+  const DeleteConfirmationModal = () => (
+    <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Confirm Deletion</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete this recipe? This action cannot be undone.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setShowDeleteModal(false)}>Cancel</Button>
+          <Button variant="destructive" onClick={() => {
+            // Placeholder for future delete functionality
+            setShowDeleteModal(false);
+            console.log('Delete action placeholder');
+          }}>Delete</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-64">
@@ -452,8 +476,13 @@ export function RecipeForm({ initialRecipe, slug, onUpdate }: RecipeFormProps) {
         </div>
       </div>
       <div className="flex justify-between items-center">
-        <div>
-          <Button type="button" variant="outline" onClick={handleCancel} className="mr-2">Cancel</Button>
+        <div className="flex space-x-2">
+          {isEditing && (
+            <Button type="button" variant="destructive" onClick={() => setShowDeleteModal(true)}>Delete Recipe</Button>
+          )}
+        </div>
+        <div className="flex space-x-2">
+          <Button type="button" variant="outline" onClick={handleCancel}>Cancel</Button>
           <Button type="submit">{initialRecipe ? 'Save Recipe' : 'Add Recipe'}</Button>
         </div>
       </div>
@@ -473,6 +502,8 @@ export function RecipeForm({ initialRecipe, slug, onUpdate }: RecipeFormProps) {
           </button>
         </div>
       )}
+
+      <DeleteConfirmationModal />
     </form>
   )
 }
