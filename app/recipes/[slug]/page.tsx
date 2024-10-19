@@ -1,4 +1,4 @@
-import { RecipeDetail } from '@/components/RecipeDetail';
+import { RecipeDetail } from '@/app/components/RecipeDetail';
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 

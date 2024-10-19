@@ -1,11 +1,11 @@
 import { ClerkProvider } from "@clerk/nextjs";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+import { Header } from "@/app/components/Header";
+import { Footer } from "@/app/components/Footer";
 import type { Metadata } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 import { RecipeProvider } from '@/lib/recipeContext';
-import { Toaster } from "@/components/ui/toaster";
+import { Toaster } from "@/app/components/ui/toaster";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",

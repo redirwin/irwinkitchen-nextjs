@@ -1,6 +1,6 @@
 "use client";
 
-import { RecipeForm } from '@/components/RecipeForm';
+import { RecipeForm } from '@/app/components/RecipeForm';
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import { useState, useEffect } from 'react';

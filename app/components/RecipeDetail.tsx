@@ -1,11 +1,11 @@
 "use client";
 
-import { Badge } from "@/components/ui/badge"
-import { Recipe } from '../types/Recipe';
+import { Badge } from "@/app/components/ui/badge"
+import { Recipe } from '../../types/Recipe';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { Button } from "@/components/ui/button";
+import { Button } from "@/app/components/ui/button";
 import { Pencil } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
 

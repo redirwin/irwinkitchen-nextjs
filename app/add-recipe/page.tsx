@@ -1,7 +1,7 @@
 "use client";
 
 import { SignedIn, SignedOut, useClerk } from "@clerk/nextjs";
-import { RecipeForm } from "@/components/RecipeForm";
+import { RecipeForm } from "@/app/components/RecipeForm";
 import { usePathname } from "next/navigation";
 
 export default function AddRecipe() {
