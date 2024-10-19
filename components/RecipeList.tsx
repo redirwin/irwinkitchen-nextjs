@@ -57,9 +57,10 @@ export default function RecipeList() {
                 <Image 
                   src={recipe.imageUrl} 
                   alt={recipe.name} 
-                  layout="fill"
-                  objectFit="cover"
+                  fill
+                  style={{ objectFit: 'cover' }}
                   className="rounded-t-lg"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
                 />
               </div>
             )}
