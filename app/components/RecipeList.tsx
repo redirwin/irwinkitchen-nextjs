@@ -11,13 +11,16 @@ import { Pagination, PaginationContent, PaginationEllipsis, PaginationItem, Pagi
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select"
 import { X } from "lucide-react"
 import { Button } from "@/app/components/ui/button"
+import { Input } from "@/app/components/ui/input"
+import { Recipe } from '@/types/Recipe'; // Make sure this path is correct
 
 export default function RecipeList() {
   const { recipes, setRecipes } = useRecipes();
   const [isLoading, setIsLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const recipesPerPage = 9;
+  const recipesPerPage = 6;
+  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
     const fetchRecipes = async () => {
@@ -41,16 +44,27 @@ export default function RecipeList() {
     Array.isArray(recipe.tags) ? recipe.tags.map(tag => tag.name) : recipe.tags.split(',').map(tag => tag.trim())
   ))).sort();
 
-  // Filter recipes based on selected tags
-  const filteredRecipes = selectedTags.length > 0
-    ? recipes.filter(recipe => 
-        selectedTags.every(tag => 
-          (Array.isArray(recipe.tags) 
-            ? recipe.tags.some(t => t.name === tag)
-            : recipe.tags.split(',').map(t => t.trim()).includes(tag))
-        )
-      )
-    : recipes;
+  const searchRecipe = (recipe: Recipe, query: string) => {
+    const searchTerms = query.toLowerCase().split(' ');
+    return searchTerms.every(term =>
+      recipe.name.toLowerCase().includes(term) ||
+      recipe.shortDescription.toLowerCase().includes(term) ||
+      recipe.description.toLowerCase().includes(term) ||
+      recipe.ingredients.some(ing => ing.name.toLowerCase().includes(term)) ||
+      (Array.isArray(recipe.tags)
+        ? recipe.tags.some(tag => tag.name.toLowerCase().includes(term))
+        : recipe.tags.toLowerCase().includes(term))
+    );
+  };
+
+  // Filter recipes based on selected tags and search query
+  const filteredRecipes = recipes.filter(recipe => 
+    (selectedTags.length === 0 || selectedTags.every(tag => 
+      (Array.isArray(recipe.tags) 
+        ? recipe.tags.some(t => t.name === tag)
+        : recipe.tags.split(',').map(t => t.trim()).includes(tag))
+    )) && (searchQuery === '' || searchRecipe(recipe, searchQuery))
+  );
 
   // Calculate pagination
   const indexOfLastRecipe = currentPage * recipesPerPage;
@@ -76,6 +90,16 @@ export default function RecipeList() {
     toggleTag(tag);
   };
 
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchQuery(e.target.value);
+    setCurrentPage(1); // Reset to first page when search query changes
+  };
+
+  const handleClearSearch = () => {
+    setSearchQuery('');
+    setCurrentPage(1);
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-64">
@@ -85,18 +109,20 @@ export default function RecipeList() {
     );
   }
 
-  if (recipes.length === 0) {
-    return (
-      <div className="text-center p-8 bg-muted rounded-lg">
-        <p className="text-xl font-semibold mb-2">No recipes found</p>
-        <p className="text-muted-foreground">It looks like there aren't any recipes yet. Why not add some to get started?</p>
-      </div>
-    );
-  }
-
   return (
     <>
       <div className="mb-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-3xl font-bold">Browse and Search Recipes</h1>
+          <div className="w-1/3">
+            <Input 
+              type="search" 
+              placeholder="Search recipes..." 
+              value={searchQuery}
+              onChange={handleSearchChange}
+            />
+          </div>
+        </div>
         <div className="flex flex-wrap gap-2 mb-4">
           {allTags.map(tag => (
             <Badge 
@@ -127,108 +153,129 @@ export default function RecipeList() {
         )}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {currentRecipes.map((recipe) => (
-          <Link href={`/recipes/${recipe.slug}`} key={recipe.id} className="h-full">
-            <Card className="cursor-pointer shadow-md hover:shadow-lg transition-all duration-300 ease-in-out hover:-translate-y-1 h-full flex flex-col">
-              {recipe.imageUrl && (
-                <div className="relative w-full h-48">
-                  <Image 
-                    src={recipe.imageUrl} 
-                    alt={recipe.name} 
-                    fill
-                    style={{ objectFit: 'cover' }}
-                    className="rounded-t-lg"
-                    sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                  />
-                </div>
-              )}
-              <CardHeader className="flex-grow">
-                <CardTitle className="line-clamp-2">{recipe.name}</CardTitle>
-                {recipe.shortDescription && (
-                  <CardDescription className="line-clamp-3">
-                    {recipe.shortDescription}
-                  </CardDescription>
-                )}
-              </CardHeader>
-              <CardContent>
-                <div className="flex flex-col gap-1 text-sm text-muted-foreground">
-                  {recipe.cookingTime && <span>Cooking time: {recipe.cookingTime}</span>}
-                  {recipe.difficulty && <span>Difficulty: {recipe.difficulty}</span>}
-                  {recipe.servingSize && <span>Servings: {recipe.servingSize}</span>}
-                </div>
-              </CardContent>
-              <CardFooter>
-                <div className="flex flex-wrap gap-2">
-                  {Array.isArray(recipe.tags) ? (
-                    recipe.tags.map((tag) => (
-                      <Badge 
-                        key={tag.name} 
-                        variant={selectedTags.includes(tag.name) ? "default" : "secondary"}
-                        className="cursor-pointer transition-colors duration-200"
-                        onClick={(e) => handleTagClick(e, tag.name)}
-                      >
-                        {tag.name}
-                      </Badge>
-                    ))
-                  ) : (
-                    typeof recipe.tags === 'string' ? 
-                      recipe.tags.split(',').map((tag) => (
-                        <Badge 
-                          key={tag.trim()} 
-                          variant={selectedTags.includes(tag.trim()) ? "default" : "secondary"}
-                          className="cursor-pointer transition-colors duration-200"
-                          onClick={(e) => handleTagClick(e, tag.trim())}
-                        >
-                          {tag.trim()}
-                        </Badge>
-                      ))
-                    : null
+      {filteredRecipes.length === 0 ? (
+        <div className="text-center p-8 bg-muted rounded-lg">
+          <p className="text-xl font-semibold mb-2">No recipes found</p>
+          <p className="text-muted-foreground mb-4">
+            {searchQuery 
+              ? "No recipes match your search criteria. Try adjusting your search terms."
+              : "It looks like there aren't any recipes yet. Why not add some to get started?"}
+          </p>
+          {searchQuery && (
+            <Button onClick={handleClearSearch}>
+              Show All Recipes
+            </Button>
+          )}
+        </div>
+      ) : (
+        <>
+          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {currentRecipes.map((recipe) => (
+              <Link href={`/recipes/${recipe.slug}`} key={recipe.id} className="h-full">
+                <Card className="cursor-pointer shadow-md hover:shadow-lg transition-all duration-300 ease-in-out hover:-translate-y-1 h-full flex flex-col">
+                  {recipe.imageUrl && (
+                    <div className="relative w-full h-48">
+                      <Image 
+                        src={recipe.imageUrl} 
+                        alt={recipe.name} 
+                        fill
+                        style={{ objectFit: 'cover' }}
+                        className="rounded-t-lg"
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                      />
+                    </div>
                   )}
-                </div>
-              </CardFooter>
-            </Card>
-          </Link>
-        ))}
-      </div>
-      <div className="mt-8 flex justify-center">
-        <Pagination>
-          <PaginationContent>
-            <PaginationItem>
-              <PaginationPrevious 
-                href="#" 
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (currentPage > 1) setCurrentPage(currentPage - 1);
-                }}
-              />
-            </PaginationItem>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <PaginationItem key={page}>
-                <PaginationLink 
-                  href="#" 
-                  isActive={currentPage === page}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    setCurrentPage(page);
-                  }}
-                >
-                  {page}
-                </PaginationLink>
-              </PaginationItem>
+                  <CardHeader className="flex-grow">
+                    <CardTitle className="line-clamp-2">{recipe.name}</CardTitle>
+                    {recipe.shortDescription && (
+                      <CardDescription className="line-clamp-3">
+                        {recipe.shortDescription}
+                      </CardDescription>
+                    )}
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col gap-1 text-sm text-muted-foreground">
+                      {recipe.cookingTime && <span>Cooking time: {recipe.cookingTime}</span>}
+                      {recipe.difficulty && <span>Difficulty: {recipe.difficulty}</span>}
+                      {recipe.servingSize && <span>Servings: {recipe.servingSize}</span>}
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <div className="flex flex-wrap gap-2">
+                      {Array.isArray(recipe.tags) ? (
+                        recipe.tags.map((tag) => (
+                          <Badge 
+                            key={tag.name} 
+                            variant={selectedTags.includes(tag.name) ? "default" : "secondary"}
+                            className="cursor-pointer transition-colors duration-200"
+                            onClick={(e) => handleTagClick(e, tag.name)}
+                          >
+                            {tag.name}
+                          </Badge>
+                        ))
+                      ) : (
+                        typeof recipe.tags === 'string' ? 
+                          recipe.tags.split(',').map((tag) => (
+                            <Badge 
+                              key={tag.trim()} 
+                              variant={selectedTags.includes(tag.trim()) ? "default" : "secondary"}
+                              className="cursor-pointer transition-colors duration-200"
+                              onClick={(e) => handleTagClick(e, tag.trim())}
+                            >
+                              {tag.trim()}
+                            </Badge>
+                          ))
+                        : null
+                      )}
+                    </div>
+                  </CardFooter>
+                </Card>
+              </Link>
             ))}
-            <PaginationItem>
-              <PaginationNext 
-                href="#" 
-                onClick={(e) => {
-                  e.preventDefault();
-                  if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-                }}
-              />
-            </PaginationItem>
-          </PaginationContent>
-        </Pagination>
-      </div>
+          </div>
+
+          {filteredRecipes.length > recipesPerPage && (
+            <div className="mt-8 flex justify-center">
+              <Pagination>
+                <PaginationContent>
+                  <PaginationItem>
+                    <PaginationPrevious 
+                      href="#" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage > 1) setCurrentPage(currentPage - 1);
+                      }}
+                    />
+                  </PaginationItem>
+                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    <PaginationItem key={page}>
+                      <PaginationLink 
+                        href="#" 
+                        isActive={currentPage === page}
+                        onClick={(e) => {
+                          e.preventDefault();
+                          setCurrentPage(page);
+                        }}
+                      >
+                        {page}
+                      </PaginationLink>
+                    </PaginationItem>
+                  ))}
+                  <PaginationItem>
+                    <PaginationNext 
+                      href="#" 
+                      onClick={(e) => {
+                        e.preventDefault();
+                        if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+                      }}
+                    />
+                  </PaginationItem>
+                </PaginationContent>
+              </Pagination>
+            </div>
+          )}
+        </>
+      )}
     </>
   );
 }
