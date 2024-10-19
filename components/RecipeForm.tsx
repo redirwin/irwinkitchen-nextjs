@@ -9,16 +9,17 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PlusCircledIcon, Cross2Icon } from "@radix-ui/react-icons"
 import { useRouter } from "next/navigation"
 import { useRecipes } from '@/lib/recipeContext'
-import { generateSlug } from '@/lib/utils'
 import { useToast } from "@/components/ui/use-toast"
+import { DeleteConfirmationModal } from "@/components/DeleteConfirmationModal"
 
 interface RecipeFormProps {
   initialRecipe?: Recipe;
+  slug?: string;
 }
 
-export function RecipeForm({ initialRecipe }: RecipeFormProps) {
+export function RecipeForm({ initialRecipe, slug }: RecipeFormProps) {
   const router = useRouter()
-  const { addRecipe, updateRecipe } = useRecipes()
+  const { addRecipe, updateRecipe, deleteRecipe } = useRecipes()
   const { toast } = useToast()
   const [recipe, setRecipe] = useState(() => {
     if (initialRecipe) {
@@ -43,6 +44,7 @@ export function RecipeForm({ initialRecipe }: RecipeFormProps) {
   const [imagePreview, setImagePreview] = useState<string | null>(initialRecipe?.image || null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false)
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -194,6 +196,33 @@ export function RecipeForm({ initialRecipe }: RecipeFormProps) {
         description: error.message || "Failed to save recipe",
         variant: "destructive",
       })
+    }
+  };
+
+  const handleCancel = () => {
+    if (slug) {
+      router.push(`/recipes/${slug}`);
+    } else {
+      router.push('/');
+    }
+  };
+
+  const handleDelete = async () => {
+    try {
+      await fetch(`/api/recipes/${slug}`, { method: 'DELETE' });
+      deleteRecipe(slug);
+      toast({
+        title: "Recipe deleted",
+        description: "Your recipe has been successfully deleted.",
+      });
+      router.push('/');
+    } catch (error) {
+      console.error('Error deleting recipe:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete recipe",
+        variant: "destructive",
+      });
     }
   };
 
@@ -362,7 +391,22 @@ export function RecipeForm({ initialRecipe }: RecipeFormProps) {
           </div>
         </div>
       </div>
-      <Button type="submit">{initialRecipe ? 'Save Recipe' : 'Add Recipe'}</Button>
+      <div className="flex justify-between items-center">
+        <Button type="submit">{initialRecipe ? 'Save Recipe' : 'Add Recipe'}</Button>
+        <div>
+          <Button type="button" variant="outline" onClick={handleCancel} className="mr-2">Cancel</Button>
+          {initialRecipe && (
+            <Button type="button" variant="destructive" onClick={() => setIsDeleteModalOpen(true)}>Delete</Button>
+          )}
+        </div>
+      </div>
+
+      <DeleteConfirmationModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDelete}
+      />
+
       {error && (
         <div className="fixed bottom-4 right-4 bg-white dark:bg-neutral-950 border border-red-500 text-red-700 px-7 py-3 rounded shadow-lg z-[100] transition-opacity duration-500 opacity-100">
           <strong className="font-bold">Error: </strong>

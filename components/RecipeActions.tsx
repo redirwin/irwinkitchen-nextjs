@@ -10,9 +10,10 @@ import { useToast } from "@/components/ui/use-toast";
 
 interface RecipeActionsProps {
   recipe: Recipe;
+  showDelete?: boolean;
 }
 
-export function RecipeActions({ recipe }: RecipeActionsProps) {
+export function RecipeActions({ recipe, showDelete = true }: RecipeActionsProps) {
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const router = useRouter();
   const { isSignedIn } = useAuth();
@@ -60,16 +61,20 @@ export function RecipeActions({ recipe }: RecipeActionsProps) {
           <Pencil className="h-4 w-4 mr-2" />
           Edit
         </Button>
-        <Button variant="destructive" size="sm" onClick={() => setIsDeleteModalOpen(true)}>
-          <Trash className="h-4 w-4 mr-2" />
-          Delete
-        </Button>
+        {showDelete && (
+          <Button variant="destructive" size="sm" onClick={() => setIsDeleteModalOpen(true)}>
+            <Trash className="h-4 w-4 mr-2" />
+            Delete
+          </Button>
+        )}
       </div>
-      <DeleteConfirmationModal
-        isOpen={isDeleteModalOpen}
-        onClose={() => setIsDeleteModalOpen(false)}
-        onConfirm={handleDelete}
-      />
+      {showDelete && (
+        <DeleteConfirmationModal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          onConfirm={handleDelete}
+        />
+      )}
     </>
   );
 }

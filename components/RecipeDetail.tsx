@@ -33,7 +33,7 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
     <div className="max-w-3xl mx-auto p-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">{recipe.name}</h1>
-        <RecipeActions recipe={recipe} />
+        <RecipeActions recipe={recipe} showDelete={false} />
       </div>
       {recipe.shortDescription && <p className="text-lg mb-4">{recipe.shortDescription}</p>}
       <div className="flex space-x-4 mb-4">
