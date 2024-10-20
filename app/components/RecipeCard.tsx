@@ -2,6 +2,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Badge } from "@/app/components/ui/badge"
 import Image from 'next/image';
 import { Recipe } from '@/types/Recipe';
+import { toTitleCase } from "@/app/utils/stringUtils";
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -51,7 +52,7 @@ export function RecipeCard({ recipe, selectedTags, onTagClick, onClick }: Recipe
                   className="cursor-pointer transition-colors duration-200"
                   onClick={(e) => onTagClick(e, tag.name)}
                 >
-                  {tag.name}
+                  {toTitleCase(tag.name)}
                 </Badge>
               ))
             ) : (
@@ -63,7 +64,7 @@ export function RecipeCard({ recipe, selectedTags, onTagClick, onClick }: Recipe
                     className="cursor-pointer transition-colors duration-200"
                     onClick={(e) => onTagClick(e, tag.trim())}
                   >
-                    {tag.trim()}
+                    {toTitleCase(tag.trim())}
                   </Badge>
                 ))
               : null

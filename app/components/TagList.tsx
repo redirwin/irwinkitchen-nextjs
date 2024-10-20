@@ -1,6 +1,7 @@
 import { Badge } from "@/app/components/ui/badge"
 import { Button } from "@/app/components/ui/button"
 import { X } from "lucide-react"
+import { toTitleCase } from "@/app/utils/stringUtils"
 
 interface TagListProps {
   allTags: string[];
@@ -20,14 +21,14 @@ export function TagList({ allTags, selectedTags, onTagToggle, onResetTags }: Tag
             className="cursor-pointer transition-colors duration-200"
             onClick={() => onTagToggle(tag)}
           >
-            {tag}
+            {toTitleCase(tag)}
           </Badge>
         ))}
       </div>
       {selectedTags.length > 0 && (
         <div className="flex items-center gap-2">
           <span className="text-sm text-muted-foreground">
-            Filtered by: {selectedTags.join(', ')}
+            Filtered by: {selectedTags.map(toTitleCase).join(', ')}
           </span>
           <Button 
             variant="ghost" 

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { PrismaClient } from '@prisma/client'
 import { Prisma } from '@prisma/client'
 import slugify from 'slugify';
+import { toTitleCase } from "@/app/utils/stringUtils";
 
 const prisma = new PrismaClient()
 
@@ -29,7 +30,11 @@ export async function POST(request: Request) {
     const servingSize = formData.get('servingSize') as string;
     const ingredients = JSON.parse(formData.get('ingredients') as string);
     const steps = JSON.parse(formData.get('steps') as string);
-    const tags = (formData.get('tags') as string).split(',').filter(tag => tag.trim() !== '');
+    const tags = (formData.get('tags') as string)
+      .split(',')
+      .map(tag => tag.trim())
+      .filter(Boolean)
+      .map(toTitleCase);
 
     const recipe = await prisma.recipe.create({
       data: {

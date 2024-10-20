@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Input } from "@/app/components/ui/input";
 import { Badge } from "@/app/components/ui/badge";
+import { toTitleCase } from "@/app/utils/stringUtils";
 
 interface TagInputProps {
   value: string;
@@ -46,7 +47,7 @@ export function TagInput({ value, onChange, allTags, maxTags = 6 }: TagInputProp
             className="cursor-pointer transition-colors duration-200"
             onClick={() => toggleTag(tag)}
           >
-            {tag}
+            {toTitleCase(tag)}
           </Badge>
         ))}
       </div>

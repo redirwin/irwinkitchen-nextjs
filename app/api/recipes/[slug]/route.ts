@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { Prisma } from '@prisma/client';
 import { writeFile, unlink } from 'fs/promises';
 import path from 'path';
+import { toTitleCase } from "@/app/utils/stringUtils";
 
 export async function DELETE(
   request: Request,
@@ -80,7 +81,11 @@ export async function PUT(
       servingSize: formData.get('servingSize') as string,
       ingredients: JSON.parse(formData.get('ingredients') as string),
       steps: JSON.parse(formData.get('steps') as string),
-      tags: (formData.get('tags') as string).split(',').map(tag => tag.trim()).filter(Boolean),
+      tags: (formData.get('tags') as string)
+        .split(',')
+        .map(tag => tag.trim())
+        .filter(Boolean)
+        .map(toTitleCase),
     };
 
     let imageUrl = undefined;

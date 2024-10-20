@@ -9,6 +9,7 @@ import { Button } from "@/app/components/ui/button";
 import { Pencil } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
 import { ArrowLeft } from "lucide-react";
+import { toTitleCase } from "@/app/utils/stringUtils";
 
 interface RecipeDetailProps {
   initialRecipe: Recipe;
@@ -84,7 +85,7 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
                 </Badge>
               ))
             ) : typeof recipe.tags === 'string' ? (
-              recipe.tags.split(',').map((tag) => (
+              toTitleCase(recipe.tags).split(',').map((tag) => (
                 <Badge key={tag.trim()} variant="secondary" className="mr-2">
                   {tag.trim()}
                 </Badge>
