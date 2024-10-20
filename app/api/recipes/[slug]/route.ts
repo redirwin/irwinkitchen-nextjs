@@ -129,7 +129,7 @@ export async function PUT(
         },
         steps: {
           deleteMany: {},
-          create: updatedRecipe.steps.map(({ id, recipeId, ...step }, index) => ({
+          create: updatedRecipe.steps.map(({ id, recipeId, ...step }: { id?: string; recipeId?: string; content: string; [key: string]: any }, index: number) => ({
             order: index + 1,
             content: step.content,
           })),
