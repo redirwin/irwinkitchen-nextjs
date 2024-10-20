@@ -125,7 +125,7 @@ export async function PUT(
         imageUrl: imageUrl,
         ingredients: {
           deleteMany: {},
-          create: updatedRecipe.ingredients.map(({ id, recipeId, ...rest }) => rest),
+          create: updatedRecipe.ingredients.map(({ id, recipeId, ...rest }: { id?: string; recipeId?: string; [key: string]: any }) => rest),
         },
         steps: {
           deleteMany: {},
