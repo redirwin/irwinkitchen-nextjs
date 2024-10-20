@@ -12,7 +12,8 @@ const config: Config = {
   		colors: {
   			background: 'var(--background)',
   			foreground: 'var(--foreground)',
-  			'navy-blue': '#001f3f'
+  			'navy-blue': '#001f3f',
+  			'blue-200': '#90cdf4'
   		},
   		borderRadius: {
   			lg: 'var(--radius)',
