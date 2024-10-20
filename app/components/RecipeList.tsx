@@ -1,18 +1,16 @@
 "use client"
 
 import Link from 'next/link'
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/app/components/ui/card"
-import { Badge } from "@/app/components/ui/badge"
 import { useRecipes } from '@/lib/recipeContext';
 import { useState, useEffect } from 'react';
 import { Loader2 } from 'lucide-react';
-import Image from 'next/image';
-import { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationNext, PaginationPrevious } from "@/app/components/ui/pagination"
-import { X } from "lucide-react"
 import { Button } from "@/app/components/ui/button"
-import { Input } from "@/app/components/ui/input"
-import { Recipe } from '@/types/Recipe'; // Make sure this path is correct
+import { Recipe } from '@/types/Recipe';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { SearchBar } from './SearchBar';
+import { TagList } from './TagList';
+import { RecipeCard } from './RecipeCard';
+import { PaginationControls } from './PaginationControls';
 
 export default function RecipeList() {
   const { recipes, setRecipes } = useRecipes();
@@ -155,44 +153,15 @@ export default function RecipeList() {
     <>
       <div className="mb-6">
         <div className="flex justify-between items-center mb-6">
-          <h1 className="text-3xl font-bold">Browse and Search Recipes</h1>
-          <div className="w-1/3">
-            <Input 
-              type="search" 
-              placeholder="Search recipes..." 
-              value={searchQuery}
-              onChange={handleSearchChange}
-            />
-          </div>
+          <h1 className="text-3xl font-bold">Browse & Search Recipes</h1>
+          <SearchBar searchQuery={searchQuery} onSearchChange={handleSearchChange} />
         </div>
-        <div className="flex flex-wrap gap-2 mb-4">
-          {allTags.map(tag => (
-            <Badge 
-              key={tag}
-              variant={selectedTags.includes(tag) ? "default" : "secondary"}
-              className="cursor-pointer transition-colors duration-200"
-              onClick={() => toggleTag(tag)}
-            >
-              {tag}
-            </Badge>
-          ))}
-        </div>
-        {selectedTags.length > 0 && (
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">
-              Filtered by: {selectedTags.join(', ')}
-            </span>
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              onClick={resetTags}
-              className="h-8 px-2 text-xs"
-            >
-              <X className="h-4 w-4 mr-1" />
-              Reset
-            </Button>
-          </div>
-        )}
+        <TagList 
+          allTags={allTags} 
+          selectedTags={selectedTags} 
+          onTagToggle={toggleTag} 
+          onResetTags={resetTags} 
+        />
       </div>
 
       {recipes.length === 0 ? (
@@ -221,112 +190,22 @@ export default function RecipeList() {
         <>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {currentRecipes.map((recipe) => (
-              <div
+              <RecipeCard
                 key={recipe.id}
-                className="h-full cursor-pointer"
+                recipe={recipe}
+                selectedTags={selectedTags}
+                onTagClick={handleTagClick}
                 onClick={() => saveStateAndNavigate(recipe.slug)}
-              >
-                <Card className="shadow-md hover:shadow-lg transition-all duration-300 ease-in-out hover:-translate-y-1 h-full flex flex-col">
-                  {recipe.imageUrl && (
-                    <div className="relative w-full h-48">
-                      <Image 
-                        src={recipe.imageUrl} 
-                        alt={recipe.name} 
-                        fill
-                        style={{ objectFit: 'cover' }}
-                        className="rounded-t-lg"
-                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                      />
-                    </div>
-                  )}
-                  <CardHeader className="flex-grow">
-                    <CardTitle className="line-clamp-2">{recipe.name}</CardTitle>
-                    {recipe.shortDescription && (
-                      <CardDescription className="line-clamp-3">
-                        {recipe.shortDescription}
-                      </CardDescription>
-                    )}
-                  </CardHeader>
-                  <CardContent>
-                    <div className="flex flex-col gap-1 text-sm text-muted-foreground">
-                      {recipe.cookingTime && <span>Cooking time: {recipe.cookingTime}</span>}
-                      {recipe.difficulty && <span>Difficulty: {recipe.difficulty}</span>}
-                      {recipe.servingSize && <span>Servings: {recipe.servingSize}</span>}
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <div className="flex flex-wrap gap-2">
-                      {Array.isArray(recipe.tags) ? (
-                        recipe.tags.map((tag) => (
-                          <Badge 
-                            key={tag.name} 
-                            variant={selectedTags.includes(tag.name) ? "default" : "secondary"}
-                            className="cursor-pointer transition-colors duration-200"
-                            onClick={(e) => handleTagClick(e, tag.name)}
-                          >
-                            {tag.name}
-                          </Badge>
-                        ))
-                      ) : (
-                        typeof recipe.tags === 'string' ? 
-                          recipe.tags.split(',').map((tag) => (
-                            <Badge 
-                              key={tag.trim()} 
-                              variant={selectedTags.includes(tag.trim()) ? "default" : "secondary"}
-                              className="cursor-pointer transition-colors duration-200"
-                              onClick={(e) => handleTagClick(e, tag.trim())}
-                            >
-                              {tag.trim()}
-                            </Badge>
-                          ))
-                        : null
-                      )}
-                    </div>
-                  </CardFooter>
-                </Card>
-              </div>
+              />
             ))}
           </div>
 
           {filteredRecipes.length > recipesPerPage && (
-            <div className="mt-8 flex justify-center">
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious 
-                      href="#" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (currentPage > 1) setCurrentPage(currentPage - 1);
-                      }}
-                    />
-                  </PaginationItem>
-                  {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-                    <PaginationItem key={page}>
-                      <PaginationLink 
-                        href="#" 
-                        isActive={currentPage === page}
-                        onClick={(e) => {
-                          e.preventDefault();
-                          setCurrentPage(page);
-                        }}
-                      >
-                        {page}
-                      </PaginationLink>
-                    </PaginationItem>
-                  ))}
-                  <PaginationItem>
-                    <PaginationNext 
-                      href="#" 
-                      onClick={(e) => {
-                        e.preventDefault();
-                        if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-                      }}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
-            </div>
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
           )}
         </>
       )}
