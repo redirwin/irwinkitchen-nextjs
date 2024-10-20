@@ -66,5 +66,8 @@ Thumbs.db
 # Ignore seeded data
 prisma/dev.db
 
+# Ignore all db files
+*.db
+
 # Ignore SQL files
 *.sql
