@@ -19,7 +19,7 @@ import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
-} from "@/components/ui/collapsible"
+} from "@/app/components/ui/collapsible"
 import { ChevronDown, ChevronUp } from "lucide-react"
 
 interface RecipeFormProps {

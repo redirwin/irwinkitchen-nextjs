@@ -6,10 +6,16 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from "@/app/components/ui/button";
-import { Pencil, Home, Clipboard, ListOrdered, ChefHat, Tags } from "lucide-react";
+import { Pencil, Home, Clipboard, ListOrdered, ChefHat, Tags, Printer } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
 import { toTitleCase } from "@/app/utils/stringUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/app/components/ui/tooltip"
 
 interface RecipeDetailProps {
   initialRecipe: Recipe;
@@ -44,6 +50,57 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
     router.push('/');
   };
 
+  const handlePrint = () => {
+    const printContent = getPrinterFriendlyContent();
+    const iframe = document.createElement('iframe');
+    iframe.style.display = 'none';
+    document.body.appendChild(iframe);
+
+    iframe.contentDocument?.write(printContent);
+    iframe.contentDocument?.close();
+
+    iframe.onload = () => {
+      setTimeout(() => {
+        iframe.contentWindow?.print();
+        document.body.removeChild(iframe);
+      }, 100);
+    };
+  };
+
+  const getPrinterFriendlyContent = () => {
+    return `
+      <html>
+        <head>
+          <title>${recipe.name}</title>
+          <style>
+            body { font-family: Arial, sans-serif; line-height: 1.6; }
+            h1 { text-align: center; }
+            h2 { margin-top: 20px; }
+            ul, ol { padding-left: 20px; }
+          </style>
+        </head>
+        <body>
+          <h1>${recipe.name}</h1>
+          ${recipe.shortDescription ? `<p>${recipe.shortDescription}</p>` : ''}
+          <p>
+            ${recipe.cookingTime ? `Cooking Time: ${recipe.cookingTime}<br>` : ''}
+            ${recipe.difficulty ? `Difficulty: ${recipe.difficulty}<br>` : ''}
+            ${recipe.servingSize ? `Serves: ${recipe.servingSize}` : ''}
+          </p>
+          <h2>Ingredients</h2>
+          <ul>
+            ${recipe.ingredients.map(ing => `<li>${ing.amount} ${ing.name}</li>`).join('')}
+          </ul>
+          <h2>Instructions</h2>
+          <ol>
+            ${recipe.steps.map(step => `<li>${step.content}</li>`).join('')}
+          </ol>
+          ${recipe.description ? `<h2>About this Recipe</h2><p>${recipe.description}</p>` : ''}
+        </body>
+      </html>
+    `;
+  };
+
   return (
     <div className="max-w-3xl mx-auto p-6">
       {recipe.imageUrl && (
@@ -59,16 +116,42 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
       )}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">{recipe.name}</h1>
-        <div className="flex space-x-2">
-          {isSignedIn && (
-            <Button variant="outline" size="icon" onClick={handleEdit}>
-              <Pencil className="h-4 w-4" />
-            </Button>
-          )}
-          <Button variant="outline" size="icon" onClick={handleBack}>
-            <Home className="h-4 w-4" />
-          </Button>
-        </div>
+        <TooltipProvider>
+          <div className="flex space-x-2">
+            {isSignedIn && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="outline" size="icon" onClick={handleEdit}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Edit Recipe</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="icon" onClick={handlePrint}>
+                  <Printer className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Print Recipe</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="icon" onClick={handleBack}>
+                  <Home className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Back to Home</p>
+              </TooltipContent>
+            </Tooltip>
+          </div>
+        </TooltipProvider>
       </div>
       {recipe.shortDescription && <p className="text-lg mb-4">{recipe.shortDescription}</p>}
       <div className="flex space-x-4 mb-4">
