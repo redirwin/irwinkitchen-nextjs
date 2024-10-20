@@ -2,10 +2,9 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { Button } from "@/app/components/ui/button"
 import { SignInButton, UserButton, SignedIn, SignedOut } from "@clerk/nextjs"
 import { cn } from "@/lib/utils"
-import { Home, UtensilsCrossed } from "lucide-react"
+import { BookOpen, UtensilsCrossed, UserCircle } from "lucide-react"
 
 export function Header() {
   const pathname = usePathname()
@@ -27,7 +26,7 @@ export function Header() {
             )}
             aria-label="Browse Recipes"
           >
-            <Home className="h-5 w-5" />
+            <BookOpen className="h-5 w-5" />
           </Link>
           <Link
             href="/add-recipe"
@@ -41,9 +40,7 @@ export function Header() {
           </Link>
           <SignedOut>
             <SignInButton mode="modal">
-              <Button variant="outline" size="sm" className="text-white border-white hover:bg-blue-700">
-                Sign In
-              </Button>
+              <UserCircle className="h-5 w-5 text-white hover:text-blue-200 cursor-pointer" />
             </SignInButton>
           </SignedOut>
           <SignedIn>

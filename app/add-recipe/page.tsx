@@ -16,9 +16,8 @@ export default function AddRecipe() {
 
   return (
     <div className="container mx-auto px-4">
-      <h1 className="text-3xl font-bold mb-6">Add New Recipe</h1>
       <SignedIn>
-        <RecipeForm />
+        <RecipeForm isEditing={false} />
       </SignedIn>
       <SignedOut>
         <div className="flex flex-col justify-center h-[30vh]">

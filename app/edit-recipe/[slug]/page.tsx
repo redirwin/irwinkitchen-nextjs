@@ -1,7 +1,6 @@
 "use client";
 
 import { RecipeForm } from '@/app/components/RecipeForm';
-import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import { useState, useEffect } from 'react';
 
@@ -41,7 +40,6 @@ export default function EditRecipePage({ params }: { params: { slug: string } })
 
   return (
     <div className="container mx-auto px-4">
-      <h1 className="text-3xl font-bold mb-6">Edit Recipe</h1>
       <RecipeForm initialRecipe={recipe} slug={params.slug} isEditing={true} />
     </div>
   );

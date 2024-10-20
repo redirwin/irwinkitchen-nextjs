@@ -6,7 +6,7 @@ import { Input } from "@/app/components/ui/input"
 import { Label } from "@/app/components/ui/label"
 import { Textarea } from "@/app/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select"
-import { PlusCircledIcon, Cross2Icon, ImageIcon } from "@radix-ui/react-icons"
+import { PlusCircledIcon, Cross2Icon, ImageIcon as RadixImageIcon } from "@radix-ui/react-icons"
 import { useRouter } from "next/navigation"
 import { useRecipes } from '@/lib/recipeContext'
 import { useToast } from "@/app/components/ui/use-toast"
@@ -15,6 +15,7 @@ import { Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog"
 import { TagInput } from './TagInput';
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card"
+import { Info, Clipboard, ListOrdered, Clock, BarChart, Users, Tags, Image as LucideImageIcon } from "lucide-react"
 
 interface RecipeFormProps {
   initialRecipe?: Recipe;
@@ -56,6 +57,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
   const [isLoading, setIsLoading] = useState(!!initialRecipe);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [allTags, setAllTags] = useState<string[]>([]);
+  const headingText = isEditing ? "Edit Recipe" : "Add New Recipe";
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -357,9 +359,13 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8 max-w-2xl mx-auto px-4 sm:px-0">
+      <h1 className="text-3xl font-bold mb-6">{headingText}</h1>
       <Card>
         <CardHeader>
-          <CardTitle>Basic Information</CardTitle>
+          <CardTitle className="flex items-center">
+            <Info className="h-5 w-5 mr-2" />
+            Basic Information
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
@@ -386,7 +392,10 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
 
       <Card>
         <CardHeader>
-          <CardTitle>Ingredients</CardTitle>
+          <CardTitle className="flex items-center">
+            <Clipboard className="h-5 w-5 mr-2" />
+            Ingredients
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {recipe.ingredients.map((ingredient, index) => (
@@ -433,7 +442,10 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
 
       <Card>
         <CardHeader>
-          <CardTitle>Recipe Steps</CardTitle>
+          <CardTitle className="flex items-center">
+            <ListOrdered className="h-5 w-5 mr-2" />
+            Recipe Steps
+          </CardTitle>
         </CardHeader>
         <CardContent>
           {recipe.steps.map((step, index) => (
@@ -472,7 +484,10 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
 
       <Card>
         <CardHeader>
-          <CardTitle>Cooking Details</CardTitle>
+          <CardTitle className="flex items-center">
+            <Clock className="h-5 w-5 mr-2" />
+            Cooking Details
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -481,7 +496,10 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
               <Input id="cookingTime" name="cookingTime" value={recipe.cookingTime} onChange={handleChange} />
             </div>
             <div>
-              <Label htmlFor="difficulty">Difficulty</Label>
+              <Label htmlFor="difficulty">
+                <BarChart className="h-4 w-4 inline-block mr-1" />
+                Difficulty
+              </Label>
               <Select name="difficulty" onValueChange={(value) => setRecipe(prev => ({ ...prev, difficulty: value }))}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select difficulty" />
@@ -494,7 +512,10 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
               </Select>
             </div>
             <div>
-              <Label htmlFor="servingSize">Serving Size</Label>
+              <Label htmlFor="servingSize">
+                <Users className="h-4 w-4 inline-block mr-1" />
+                Serving Size
+              </Label>
               <Input id="servingSize" name="servingSize" type="number" value={recipe.servingSize} onChange={handleChange} />
             </div>
           </div>
@@ -503,7 +524,10 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
 
       <Card>
         <CardHeader>
-          <CardTitle>Tags</CardTitle>
+          <CardTitle className="flex items-center">
+            <Tags className="h-5 w-5 mr-2" />
+            Tags
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <TagInput
@@ -517,7 +541,10 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
 
       <Card>
         <CardHeader>
-          <CardTitle>Recipe Image</CardTitle>
+          <CardTitle className="flex items-center">
+            <LucideImageIcon className="h-5 w-5 mr-2" />
+            Recipe Image
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
@@ -538,7 +565,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
               </div>
             ) : (
               <div className="space-y-1 text-center">
-                <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+                <LucideImageIcon className="mx-auto h-12 w-12 text-gray-400" />
                 <div className="flex text-sm text-gray-600">
                   <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
                     <span>Upload a file</span>

@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from "@/app/components/ui/button";
-import { Pencil, Home } from "lucide-react";
+import { Pencil, Home, Clipboard, ListOrdered, ChefHat } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
 import { toTitleCase } from "@/app/utils/stringUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
@@ -80,7 +80,10 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
       <div className="grid md:grid-cols-2 gap-6 mb-8">
         <Card>
           <CardHeader>
-            <CardTitle>Ingredients</CardTitle>
+            <CardTitle className="flex items-center">
+              <Clipboard className="h-5 w-5 mr-2" />
+              Ingredients
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ul className="list-disc pl-5">
@@ -95,7 +98,10 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Instructions</CardTitle>
+            <CardTitle className="flex items-center">
+              <ListOrdered className="h-5 w-5 mr-2" />
+              Instructions
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <ol className="list-decimal pl-5">
@@ -110,7 +116,10 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
       {recipe.description && (
         <Card className="mb-8">
           <CardHeader>
-            <CardTitle>About this Recipe</CardTitle>
+            <CardTitle className="flex items-center">
+              <ChefHat className="h-5 w-5 mr-2" />
+              About this Recipe
+            </CardTitle>
           </CardHeader>
           <CardContent>
             <p className="text-lg">{recipe.description}</p>
