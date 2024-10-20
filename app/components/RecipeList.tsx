@@ -25,15 +25,6 @@ export default function RecipeList() {
   const recipesPerPage = 6;
 
   useEffect(() => {
-    // Read URL parameters only on initial load
-    const page = searchParams.get('page');
-    const tags = searchParams.get('tags');
-    const search = searchParams.get('search');
-
-    if (page) setCurrentPage(parseInt(page, 10));
-    if (tags) setSelectedTags(tags.split(','));
-    if (search) setSearchQuery(search);
-
     const fetchRecipes = async () => {
       setIsLoading(true);
       try {
@@ -48,7 +39,22 @@ export default function RecipeList() {
       }
     };
     fetchRecipes();
-  }, [searchParams, setRecipes]);
+
+    // Check if we're coming back from a recipe detail page
+    const isReturningFromDetail = sessionStorage.getItem('returningFromDetail');
+    if (isReturningFromDetail) {
+      const savedState = sessionStorage.getItem('recipeListState');
+      if (savedState) {
+        const { currentPage, selectedTags, searchQuery } = JSON.parse(savedState);
+        setCurrentPage(currentPage);
+        setSelectedTags(selectedTags);
+        setSearchQuery(searchQuery);
+      }
+      // Clear the flags and saved state
+      sessionStorage.removeItem('returningFromDetail');
+      sessionStorage.removeItem('recipeListState');
+    }
+  }, []);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchQuery(e.target.value);

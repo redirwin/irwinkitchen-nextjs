@@ -39,14 +39,10 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
   };
 
   const handleBack = () => {
-    const savedState = sessionStorage.getItem('recipeListState');
-    if (savedState) {
-      const { currentPage, selectedTags, searchQuery } = JSON.parse(savedState);
-      // Navigate back to the home page
-      router.push('/');
-    } else {
-      router.push('/');
-    }
+    // Set a flag indicating we're returning from the detail page
+    sessionStorage.setItem('returningFromDetail', 'true');
+    // Navigate back to the home page
+    router.push('/');
   };
 
   return (
