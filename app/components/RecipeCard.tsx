@@ -15,16 +15,18 @@ export function RecipeCard({ recipe, selectedTags, onTagClick, onClick }: Recipe
   return (
     <div className="h-full cursor-pointer" onClick={onClick}>
       <Card className="shadow-md hover:shadow-lg transition-all duration-300 ease-in-out hover:-translate-y-1 h-full flex flex-col">
-        {recipe.imageUrl && (
+        {recipe.imageUrl ? (
           <div className="relative w-full h-48">
-            <Image 
-              src={recipe.imageUrl} 
-              alt={recipe.name} 
-              fill
-              style={{ objectFit: 'cover' }}
-              className="rounded-t-lg"
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            <Image
+              src={recipe.imageUrl}
+              alt={recipe.name}
+              layout="fill"
+              objectFit="cover"
             />
+          </div>
+        ) : (
+          <div className="relative w-full h-48 bg-gray-200">
+            {/* Placeholder content */}
           </div>
         )}
         <CardHeader className="flex-grow">
