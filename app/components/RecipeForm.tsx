@@ -13,6 +13,7 @@ import { useToast } from "@/app/components/ui/use-toast"
 import Image from 'next/image';
 import { Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog"
+import { TagInput } from './TagInput';
 
 interface RecipeFormProps {
   initialRecipe?: Recipe;
@@ -23,7 +24,7 @@ interface RecipeFormProps {
 
 export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }: RecipeFormProps) {
   const router = useRouter()
-  const { addRecipe, updateRecipe } = useRecipes()
+  const { recipes, addRecipe, updateRecipe } = useRecipes()
   const { toast } = useToast()
   const [recipe, setRecipe] = useState(() => {
     if (initialRecipe) {
@@ -53,6 +54,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
   const [imageToRemove, setImageToRemove] = useState(false)
   const [isLoading, setIsLoading] = useState(!!initialRecipe);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [allTags, setAllTags] = useState<string[]>([]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -312,6 +314,20 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
     fetchRecipe();
   }, [initialRecipe, toast]);
 
+  useEffect(() => {
+    const fetchAllTags = () => {
+      try {
+        const uniqueTags = Array.from(new Set(recipes.flatMap(recipe => 
+          Array.isArray(recipe.tags) ? recipe.tags.map(tag => tag.name) : recipe.tags.split(',').map(tag => tag.trim())
+        ))).sort();
+        setAllTags(uniqueTags);
+      } catch (error) {
+        console.error('Error setting tags:', error);
+      }
+    };
+    fetchAllTags();
+  }, [recipes]);
+
   const DeleteConfirmationModal = () => (
     <Dialog open={showDeleteModal} onOpenChange={setShowDeleteModal}>
       <DialogContent>
@@ -455,8 +471,13 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
         </div>
       </div>
       <div>
-        <Label htmlFor="tags">Tags (comma-separated)</Label>
-        <Input id="tags" name="tags" value={recipe.tags} onChange={handleChange} />
+        <Label htmlFor="tags">Tags</Label>
+        <TagInput
+          value={recipe.tags}
+          onChange={(value) => setRecipe(prev => ({ ...prev, tags: value }))}
+          allTags={allTags}
+          maxTags={6}
+        />
       </div>
       <div>
         <Label htmlFor="image">Recipe Image</Label>
