@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from "@/app/components/ui/button";
-import { Pencil, ArrowLeft } from "lucide-react";
+import { Pencil, Home } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
 import { toTitleCase } from "@/app/utils/stringUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
@@ -59,12 +59,16 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
       )}
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">{recipe.name}</h1>
-        {isSignedIn && (
-          <Button variant="outline" size="sm" onClick={handleEdit}>
-            <Pencil className="h-4 w-4 mr-2" />
-            Edit
+        <div className="flex space-x-2">
+          {isSignedIn && (
+            <Button variant="outline" size="icon" onClick={handleEdit}>
+              <Pencil className="h-4 w-4" />
+            </Button>
+          )}
+          <Button variant="outline" size="icon" onClick={handleBack}>
+            <Home className="h-4 w-4" />
           </Button>
-        )}
+        </div>
       </div>
       {recipe.shortDescription && <p className="text-lg mb-4">{recipe.shortDescription}</p>}
       <div className="flex space-x-4 mb-4">
@@ -134,13 +138,6 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
           </div>
         </div>
       )}
-      
-      <div className="mt-8">
-        <Button variant="outline" onClick={handleBack}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Recipes
-        </Button>
-      </div>
     </div>
   );
 }
