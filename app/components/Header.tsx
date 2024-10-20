@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { SignInButton, UserButton, SignedIn, SignedOut } from "@clerk/nextjs"
 import { cn } from "@/lib/utils"
-import { BookOpen, UtensilsCrossed, UserCircle } from "lucide-react"
+import { Home, Plus, UserCircle } from "lucide-react"
 
 export function Header() {
   const pathname = usePathname()
@@ -24,9 +24,9 @@ export function Header() {
               "flex items-center text-sm font-medium transition-colors hover:text-blue-200",
               pathname === "/" ? "text-blue-200" : "text-white"
             )}
-            aria-label="Browse Recipes"
+            aria-label="Home"
           >
-            <BookOpen className="h-5 w-5" />
+            <Home className="h-5 w-5" />
           </Link>
           <Link
             href="/add-recipe"
@@ -36,7 +36,7 @@ export function Header() {
             )}
             aria-label="Add Recipe"
           >
-            <UtensilsCrossed className="h-5 w-5" />
+            <Plus className="h-5 w-5" />
           </Link>
           <SignedOut>
             <SignInButton mode="modal">

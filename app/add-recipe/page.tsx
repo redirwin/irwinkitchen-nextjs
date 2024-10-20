@@ -3,6 +3,7 @@
 import { SignedIn, SignedOut, useClerk } from "@clerk/nextjs";
 import { RecipeForm } from "@/app/components/RecipeForm";
 import { usePathname } from "next/navigation";
+import { Button } from "@/app/components/ui/button";
 
 export default function AddRecipe() {
   const pathname = usePathname();
@@ -22,13 +23,14 @@ export default function AddRecipe() {
       <SignedOut>
         <div className="flex flex-col justify-center h-[30vh]">
           <div className="text-center">
-            <p className="mb-4">You need to sign in to add a new recipe.</p>
-            <button 
+            <p className="mb-4">Please sign in to add or edit recipes.</p>
+            <Button 
               onClick={handleSignIn}
-              className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              variant="default"
+              size="lg"
             >
               Sign In
-            </button>
+            </Button>
           </div>
         </div>
       </SignedOut>

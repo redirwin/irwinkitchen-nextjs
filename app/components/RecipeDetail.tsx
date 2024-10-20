@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from "@/app/components/ui/button";
-import { Pencil, Home, Clipboard, ListOrdered, ChefHat } from "lucide-react";
+import { Pencil, Home, Clipboard, ListOrdered, ChefHat, Tags } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
 import { toTitleCase } from "@/app/utils/stringUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
@@ -128,23 +128,21 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
       )}
       
       {recipe.tags && (
-        <div className="mb-4">
-          <h3 className="text-lg font-semibold mb-2">Tags:</h3>
-          <div className="flex flex-wrap gap-2">
-            {Array.isArray(recipe.tags) ? (
-              recipe.tags.map((tag) => (
-                <Badge key={tag.name} variant="secondary" className="mr-2">
-                  {tag.name}
-                </Badge>
-              ))
-            ) : typeof recipe.tags === 'string' ? (
-              toTitleCase(recipe.tags).split(',').map((tag) => (
-                <Badge key={tag.trim()} variant="secondary" className="mr-2">
-                  {tag.trim()}
-                </Badge>
-              ))
-            ) : null}
-          </div>
+        <div className="mb-4 flex items-center flex-wrap gap-2">
+          <Tags className="h-5 w-5 text-gray-500" aria-label="Tags" />
+          {Array.isArray(recipe.tags) ? (
+            recipe.tags.map((tag) => (
+              <Badge key={tag.name} variant="secondary">
+                {tag.name}
+              </Badge>
+            ))
+          ) : typeof recipe.tags === 'string' ? (
+            toTitleCase(recipe.tags).split(',').map((tag) => (
+              <Badge key={tag.trim()} variant="secondary">
+                {tag.trim()}
+              </Badge>
+            ))
+          ) : null}
         </div>
       )}
     </div>

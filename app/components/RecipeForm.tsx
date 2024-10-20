@@ -6,7 +6,6 @@ import { Input } from "@/app/components/ui/input"
 import { Label } from "@/app/components/ui/label"
 import { Textarea } from "@/app/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select"
-import { PlusCircledIcon, Cross2Icon, ImageIcon as RadixImageIcon } from "@radix-ui/react-icons"
 import { useRouter } from "next/navigation"
 import { useRecipes } from '@/lib/recipeContext'
 import { useToast } from "@/app/components/ui/use-toast"
@@ -15,7 +14,7 @@ import { Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog"
 import { TagInput } from './TagInput';
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card"
-import { Info, Clipboard, ListOrdered, Clock, BarChart, Users, Tags, Image as LucideImageIcon } from "lucide-react"
+import { ChefHat, Clipboard, ListOrdered, Clock, BarChart, Users, Tags, Image as ImageIcon, PlusCircle, X, Trash2, Flame } from "lucide-react"
 
 interface RecipeFormProps {
   initialRecipe?: Recipe;
@@ -57,7 +56,9 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
   const [isLoading, setIsLoading] = useState(!!initialRecipe);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [allTags, setAllTags] = useState<string[]>([]);
-  const headingText = isEditing ? "Edit Recipe" : "Add New Recipe";
+  const headingText = isEditing && initialRecipe
+    ? `Editing ${initialRecipe.name}`
+    : "Adding a New Recipe";
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -359,11 +360,15 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8 max-w-2xl mx-auto px-4 sm:px-0">
-      <h1 className="text-3xl font-bold mb-6">{headingText}</h1>
+      <div className="mb-8">
+        <h1 className="text-3xl font-semibold flex items-center space-x-2 pb-2 border-b border-gray-200">
+          <span>{headingText}</span>
+        </h1>
+      </div>
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <Info className="h-5 w-5 mr-2" />
+            <ChefHat className="h-5 w-5 mr-2" />
             Basic Information
           </CardTitle>
         </CardHeader>
@@ -422,7 +427,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
                   onClick={() => removeIngredient(index)}
                   className="flex-shrink-0"
                 >
-                  <Cross2Icon className="h-4 w-4" />
+                  <X className="h-4 w-4" />
                 </Button>
               )}
             </div>
@@ -434,7 +439,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
             onClick={addIngredient}
             className="mt-2"
           >
-            <PlusCircledIcon className="h-4 w-4 mr-2" />
+            <PlusCircle className="h-4 w-4 mr-2" />
             Add Ingredient
           </Button>
         </CardContent>
@@ -464,7 +469,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
                   onClick={() => removeStep(index)}
                   className="flex-shrink-0 mt-1"
                 >
-                  <Cross2Icon className="h-4 w-4" />
+                  <X className="h-4 w-4" />
                 </Button>
               )}
             </div>
@@ -476,7 +481,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
             onClick={addStep}
             className="mt-2"
           >
-            <PlusCircledIcon className="h-4 w-4 mr-2" />
+            <PlusCircle className="h-4 w-4 mr-2" />
             Add Step
           </Button>
         </CardContent>
@@ -485,20 +490,23 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <Clock className="h-5 w-5 mr-2" />
+            <Flame className="h-5 w-5 mr-2" />
             Cooking Details
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             <div>
-              <Label htmlFor="cookingTime">Cooking Time</Label>
+              <Label htmlFor="cookingTime" className="flex items-center mb-2 pl-2">
+                <Clock className="h-4 w-4 mr-2" />
+                <span>Cooking Time</span>
+              </Label>
               <Input id="cookingTime" name="cookingTime" value={recipe.cookingTime} onChange={handleChange} />
             </div>
             <div>
-              <Label htmlFor="difficulty">
-                <BarChart className="h-4 w-4 inline-block mr-1" />
-                Difficulty
+              <Label htmlFor="difficulty" className="flex items-center mb-2 pl-2">
+                <BarChart className="h-4 w-4 mr-2" />
+                <span>Difficulty</span>
               </Label>
               <Select name="difficulty" onValueChange={(value) => setRecipe(prev => ({ ...prev, difficulty: value }))}>
                 <SelectTrigger>
@@ -512,9 +520,9 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
               </Select>
             </div>
             <div>
-              <Label htmlFor="servingSize">
-                <Users className="h-4 w-4 inline-block mr-1" />
-                Serving Size
+              <Label htmlFor="servingSize" className="flex items-center mb-2 pl-2">
+                <Users className="h-4 w-4 mr-2" />
+                <span>Serving Size</span>
               </Label>
               <Input id="servingSize" name="servingSize" type="number" value={recipe.servingSize} onChange={handleChange} />
             </div>
@@ -542,30 +550,35 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center">
-            <LucideImageIcon className="h-5 w-5 mr-2" />
+            <ImageIcon className="h-5 w-5 mr-2" />
             Recipe Image
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
             {hasExistingImage ? (
-              <div className="space-y-1 text-center">
+              <div className="relative">
                 <Image
                   src={imagePreview || initialRecipe?.imageUrl || ''}
                   alt="Recipe preview"
                   width={128}
                   height={128}
-                  className="mx-auto object-cover rounded-md"
+                  className="object-cover rounded-md"
                 />
-                <div className="flex justify-center">
-                  <Button type="button" onClick={handleRemoveImage} variant="outline" size="sm">
-                    Remove
-                  </Button>
-                </div>
+                <Button 
+                  type="button" 
+                  onClick={handleRemoveImage} 
+                  variant="destructive" 
+                  size="icon"
+                  className="absolute top-2 right-2 h-8 w-8 rounded-full opacity-70 hover:opacity-100 transition-opacity"
+                  aria-label="Remove image"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
               </div>
             ) : (
               <div className="space-y-1 text-center">
-                <LucideImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+                <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
                 <div className="flex text-sm text-gray-600">
                   <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
                     <span>Upload a file</span>
@@ -593,8 +606,14 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
       <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
         <div className="w-full sm:w-auto">
           {isEditing && (
-            <Button type="button" variant="destructive" onClick={() => setShowDeleteModal(true)} className="w-full sm:w-auto">
-              Delete Recipe
+            <Button 
+              type="button" 
+              variant="destructive" 
+              onClick={() => setShowDeleteModal(true)} 
+              className="w-full sm:w-auto"
+              aria-label="Delete Recipe"
+            >
+              <Trash2 className="h-5 w-5" />
             </Button>
           )}
         </div>
