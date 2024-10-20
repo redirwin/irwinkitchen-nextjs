@@ -7,12 +7,13 @@ interface SearchBarProps {
 
 export function SearchBar({ searchQuery, onSearchChange }: SearchBarProps) {
   return (
-    <div className="w-1/3">
+    <div className="w-full sm:w-64 md:w-80">
       <Input 
         type="search" 
         placeholder="Search recipes..." 
         value={searchQuery}
         onChange={onSearchChange}
+        className="w-full"
       />
     </div>
   );

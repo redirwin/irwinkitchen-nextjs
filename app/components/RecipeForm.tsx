@@ -6,7 +6,7 @@ import { Input } from "@/app/components/ui/input"
 import { Label } from "@/app/components/ui/label"
 import { Textarea } from "@/app/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select"
-import { PlusCircledIcon, Cross2Icon } from "@radix-ui/react-icons"
+import { PlusCircledIcon, Cross2Icon, ImageIcon } from "@radix-ui/react-icons"
 import { useRouter } from "next/navigation"
 import { useRecipes } from '@/lib/recipeContext'
 import { useToast } from "@/app/components/ui/use-toast"
@@ -14,6 +14,7 @@ import Image from 'next/image';
 import { Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog"
 import { TagInput } from './TagInput';
+import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card"
 
 interface RecipeFormProps {
   initialRecipe?: Recipe;
@@ -355,184 +356,224 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-6 max-w-2xl mx-auto">
-      <div>
-        <Label htmlFor="name">Recipe Name</Label>
-        <Input id="name" name="name" value={recipe.name} onChange={handleChange} required />
-      </div>
-      <div>
-        <Label htmlFor="shortDescription">Short Description</Label>
-        <Input
-          id="shortDescription"
-          name="shortDescription"
-          value={recipe.shortDescription}
-          onChange={handleChange}
-          required
-          maxLength={100} // Limit the short description to 100 characters
-        />
-      </div>
-      <div>
-        <Label htmlFor="description">Full Description</Label>
-        <Textarea id="description" name="description" value={recipe.description} onChange={handleChange} required />
-      </div>
-      <div>
-        <Label>Ingredients</Label>
-        {recipe.ingredients.map((ingredient, index) => (
-          <div key={index} className="flex items-center space-x-2 mt-2">
-            <Input
-              placeholder="Amount"
-              value={ingredient.amount}
-              onChange={(e) => handleIngredientChange(index, 'amount', e.target.value)}
-              className="w-1/3"
-            />
-            <Input
-              placeholder="Ingredient name"
-              value={ingredient.name}
-              onChange={(e) => handleIngredientChange(index, 'name', e.target.value)}
-              className="w-2/3"
-            />
-            {recipe.ingredients.length > 1 && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => removeIngredient(index)}
-              >
-                <Cross2Icon className="h-4 w-4" />
-              </Button>
-            )}
+    <form onSubmit={handleSubmit} className="space-y-8 max-w-2xl mx-auto px-4 sm:px-0">
+      <Card>
+        <CardHeader>
+          <CardTitle>Basic Information</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div>
+            <Label htmlFor="name">Recipe Name</Label>
+            <Input id="name" name="name" value={recipe.name} onChange={handleChange} required />
           </div>
-        ))}
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={addIngredient}
-          className="mt-2"
-        >
-          <PlusCircledIcon className="h-4 w-4 mr-2" />
-          Add Ingredient
-        </Button>
-      </div>
-      <div>
-        <Label>Recipe Steps</Label>
-        {recipe.steps.map((step, index) => (
-          <div key={index} className="flex items-start space-x-2 mt-2">
-            <Textarea
-              placeholder={`Step ${index + 1}`}
-              value={step.content}
-              onChange={(e) => handleStepChange(index, e.target.value)}
-              className="flex-grow"
+          <div>
+            <Label htmlFor="shortDescription">Short Description</Label>
+            <Input
+              id="shortDescription"
+              name="shortDescription"
+              value={recipe.shortDescription}
+              onChange={handleChange}
+              required
+              maxLength={100}
             />
-            {recipe.steps.length > 1 && (
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                onClick={() => removeStep(index)}
-              >
-                <Cross2Icon className="h-4 w-4" />
-              </Button>
-            )}
           </div>
-        ))}
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={addStep}
-          className="mt-2"
-        >
-          <PlusCircledIcon className="h-4 w-4 mr-2" />
-          Add Step
-        </Button>
-      </div>
-      <div className="grid grid-cols-3 gap-4">
-        <div>
-          <Label htmlFor="cookingTime">Cooking Time</Label>
-          <Input id="cookingTime" name="cookingTime" value={recipe.cookingTime} onChange={handleChange} />
-        </div>
-        <div>
-          <Label htmlFor="difficulty">Difficulty</Label>
-          <Select name="difficulty" onValueChange={(value) => setRecipe(prev => ({ ...prev, difficulty: value }))}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select difficulty" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="Easy">Easy</SelectItem>
-              <SelectItem value="Medium">Medium</SelectItem>
-              <SelectItem value="Hard">Hard</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-        <div>
-          <Label htmlFor="servingSize">Serving Size</Label>
-          <Input id="servingSize" name="servingSize" type="number" value={recipe.servingSize} onChange={handleChange} />
-        </div>
-      </div>
-      <div>
-        <Label htmlFor="tags">Tags</Label>
-        <TagInput
-          value={recipe.tags}
-          onChange={(value) => setRecipe(prev => ({ ...prev, tags: value }))}
-          allTags={allTags}
-          maxTags={6}
-        />
-      </div>
-      <div>
-        <Label htmlFor="image">Recipe Image</Label>
-        <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-          {hasExistingImage ? (
-            <div className="space-y-1 text-center">
-              <Image
-                src={imagePreview || initialRecipe?.imageUrl || ''}
-                alt="Recipe preview"
-                width={128}
-                height={128}
-                className="mx-auto object-cover"
-              />
-              <div className="flex justify-center">
-                <Button type="button" onClick={handleRemoveImage} variant="outline" size="sm">
-                  Remove
+          <div>
+            <Label htmlFor="description">Full Description</Label>
+            <Textarea id="description" name="description" value={recipe.description} onChange={handleChange} required />
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Ingredients</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {recipe.ingredients.map((ingredient, index) => (
+            <div key={index} className="flex items-center space-x-2 mb-4">
+              <div className="flex-grow flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
+                <Input
+                  placeholder="Amount"
+                  value={ingredient.amount}
+                  onChange={(e) => handleIngredientChange(index, 'amount', e.target.value)}
+                  className="w-full sm:w-1/3"
+                />
+                <Input
+                  placeholder="Ingredient name"
+                  value={ingredient.name}
+                  onChange={(e) => handleIngredientChange(index, 'name', e.target.value)}
+                  className="w-full sm:w-2/3"
+                />
+              </div>
+              {recipe.ingredients.length > 1 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeIngredient(index)}
+                  className="flex-shrink-0"
+                >
+                  <Cross2Icon className="h-4 w-4" />
                 </Button>
-              </div>
+              )}
             </div>
-          ) : (
-            <div className="space-y-1 text-center">
-              <svg className="mx-auto h-12 w-12 text-gray-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
-                <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
-              </svg>
-              <div className="flex text-sm text-gray-600">
-                <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-                  <span>Upload a file</span>
-                  <input
-                    id="file-upload"
-                    name="file-upload"
-                    type="file"
-                    className="sr-only"
-                    ref={fileInputRef}
-                    onChange={handleImageChange}
-                    accept="image/jpeg,image/png,image/webp"
-                  />
-                </label>
-                <p className="pl-1">or drag and drop</p>
-              </div>
-              <p className="text-xs text-gray-500">
-                JPEG, PNG, WebP up to 10MB and 3000x3000px
-              </p>
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addIngredient}
+            className="mt-2"
+          >
+            <PlusCircledIcon className="h-4 w-4 mr-2" />
+            Add Ingredient
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Recipe Steps</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {recipe.steps.map((step, index) => (
+            <div key={index} className="flex items-start space-x-2 mb-4">
+              <Textarea
+                placeholder={`Step ${index + 1}`}
+                value={step.content}
+                onChange={(e) => handleStepChange(index, e.target.value)}
+                className="flex-grow"
+              />
+              {recipe.steps.length > 1 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => removeStep(index)}
+                  className="flex-shrink-0 mt-1"
+                >
+                  <Cross2Icon className="h-4 w-4" />
+                </Button>
+              )}
             </div>
-          )}
-        </div>
-      </div>
-      <div className="flex justify-between items-center">
-        <div className="flex space-x-2">
+          ))}
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addStep}
+            className="mt-2"
+          >
+            <PlusCircledIcon className="h-4 w-4 mr-2" />
+            Add Step
+          </Button>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Cooking Details</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <Label htmlFor="cookingTime">Cooking Time</Label>
+              <Input id="cookingTime" name="cookingTime" value={recipe.cookingTime} onChange={handleChange} />
+            </div>
+            <div>
+              <Label htmlFor="difficulty">Difficulty</Label>
+              <Select name="difficulty" onValueChange={(value) => setRecipe(prev => ({ ...prev, difficulty: value }))}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select difficulty" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Easy">Easy</SelectItem>
+                  <SelectItem value="Medium">Medium</SelectItem>
+                  <SelectItem value="Hard">Hard</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="servingSize">Serving Size</Label>
+              <Input id="servingSize" name="servingSize" type="number" value={recipe.servingSize} onChange={handleChange} />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Tags</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <TagInput
+            value={recipe.tags}
+            onChange={(value) => setRecipe(prev => ({ ...prev, tags: value }))}
+            allTags={allTags}
+            maxTags={6}
+          />
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Recipe Image</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+            {hasExistingImage ? (
+              <div className="space-y-1 text-center">
+                <Image
+                  src={imagePreview || initialRecipe?.imageUrl || ''}
+                  alt="Recipe preview"
+                  width={128}
+                  height={128}
+                  className="mx-auto object-cover rounded-md"
+                />
+                <div className="flex justify-center">
+                  <Button type="button" onClick={handleRemoveImage} variant="outline" size="sm">
+                    Remove
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-1 text-center">
+                <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+                <div className="flex text-sm text-gray-600">
+                  <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                    <span>Upload a file</span>
+                    <input
+                      id="file-upload"
+                      name="file-upload"
+                      type="file"
+                      className="sr-only"
+                      ref={fileInputRef}
+                      onChange={handleImageChange}
+                      accept="image/jpeg,image/png,image/webp"
+                    />
+                  </label>
+                  <p className="pl-1">or drag and drop</p>
+                </div>
+                <p className="text-xs text-gray-500">
+                  JPEG, PNG, WebP up to 10MB and 3000x3000px
+                </p>
+              </div>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
+        <div className="w-full sm:w-auto">
           {isEditing && (
-            <Button type="button" variant="destructive" onClick={() => setShowDeleteModal(true)}>Delete Recipe</Button>
+            <Button type="button" variant="destructive" onClick={() => setShowDeleteModal(true)} className="w-full sm:w-auto">
+              Delete Recipe
+            </Button>
           )}
         </div>
-        <div className="flex space-x-2">
-          <Button type="button" variant="outline" onClick={handleCancel}>Cancel</Button>
-          <Button type="submit">{initialRecipe ? 'Save Recipe' : 'Add Recipe'}</Button>
+        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
+          <Button type="button" variant="outline" onClick={handleCancel} className="w-full sm:w-auto">Cancel</Button>
+          <Button type="submit" className="w-full sm:w-auto">{initialRecipe ? 'Save Recipe' : 'Add Recipe'}</Button>
         </div>
       </div>
 

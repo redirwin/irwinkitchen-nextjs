@@ -6,10 +6,10 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from "@/app/components/ui/button";
-import { Pencil } from "lucide-react";
+import { Pencil, ArrowLeft } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
-import { ArrowLeft } from "lucide-react";
 import { toTitleCase } from "@/app/utils/stringUtils";
+import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
 
 interface RecipeDetailProps {
   initialRecipe: Recipe;
@@ -40,9 +40,7 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
   };
 
   const handleBack = () => {
-    // Set a flag indicating we're returning from the detail page
     sessionStorage.setItem('returningFromDetail', 'true');
-    // Navigate back to the home page
     router.push('/');
   };
 
@@ -74,6 +72,48 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
         {recipe.difficulty && <Badge>{recipe.difficulty}</Badge>}
         {recipe.servingSize && <Badge>Serves {recipe.servingSize}</Badge>}
       </div>
+      
+      <div className="grid md:grid-cols-2 gap-6 mb-8">
+        <Card>
+          <CardHeader>
+            <CardTitle>Ingredients</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ul className="list-disc pl-5">
+              {recipe.ingredients.map((ingredient, index) => (
+                <li key={index} className="mb-2">
+                  {ingredient.amount} {ingredient.name}
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Instructions</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <ol className="list-decimal pl-5">
+              {recipe.steps.map((step, index) => (
+                <li key={index} className="mb-4">{step.content}</li>
+              ))}
+            </ol>
+          </CardContent>
+        </Card>
+      </div>
+
+      {recipe.description && (
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>About this Recipe</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-lg">{recipe.description}</p>
+          </CardContent>
+        </Card>
+      )}
+      
       {recipe.tags && (
         <div className="mb-4">
           <h3 className="text-lg font-semibold mb-2">Tags:</h3>
@@ -94,32 +134,11 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
           </div>
         </div>
       )}
-      {recipe.ingredients && recipe.ingredients.length > 0 && (
-        <>
-          <h2 className="text-2xl font-semibold mb-2">Ingredients</h2>
-          <ul className="list-disc pl-5 mb-4">
-            {recipe.ingredients.map((ingredient, index) => (
-              <li key={index}>{ingredient.amount} {ingredient.name}</li>
-            ))}
-          </ul>
-        </>
-      )}
-      {recipe.steps && recipe.steps.length > 0 && (
-        <>
-          <h2 className="text-2xl font-semibold mb-2">Instructions</h2>
-          <ol className="list-decimal pl-5 mb-4">
-            {recipe.steps.map((step, index) => (
-              <li key={index}>{step.content}</li>
-            ))}
-          </ol>
-        </>
-      )}
-      {recipe.description && <p className="text-lg mb-4">{recipe.description}</p>}
       
       <div className="mt-8">
         <Button variant="outline" onClick={handleBack}>
           <ArrowLeft className="h-4 w-4 mr-2" />
-          Back
+          Back to Recipes
         </Button>
       </div>
     </div>

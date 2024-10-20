@@ -150,9 +150,9 @@ export default function RecipeList() {
   }
 
   return (
-    <>
+    <div className="px-4 sm:px-6 md:px-8 max-w-7xl mx-auto">
       <div className="mb-6">
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <h1 className="text-3xl font-bold">Browse & Search Recipes</h1>
           <SearchBar searchQuery={searchQuery} onSearchChange={handleSearchChange} />
         </div>
@@ -188,7 +188,7 @@ export default function RecipeList() {
         </div>
       ) : (
         <>
-          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {currentRecipes.map((recipe) => (
               <RecipeCard
                 key={recipe.id}
@@ -201,14 +201,16 @@ export default function RecipeList() {
           </div>
 
           {filteredRecipes.length > recipesPerPage && (
-            <PaginationControls
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
+            <div className="mt-8">
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
           )}
         </>
       )}
-    </>
+    </div>
   );
 }
