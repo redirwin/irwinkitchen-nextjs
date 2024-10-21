@@ -164,19 +164,20 @@ export default function RecipeList() {
         />
       </div>
 
-      {recipes.length === 0 ? (
-        <div className="text-center p-8 bg-muted rounded-lg">
-          <p className="text-xl font-semibold mb-2">No recipes found</p>
-          <p className="text-muted-foreground mb-4">
-            It looks like there aren't any recipes yet. Why not add some to get started?
-          </p>
-          <Link href="/add-recipe" passHref>
-            <Button as="a">
-              Add Your First Recipe
+      {recipes.length === 0 && (
+        <div className="text-center">
+          <p className="text-xl mb-4">You haven't added any recipes yet.</p>
+          <Link href="/add-recipe" passHref legacyBehavior>
+            <Button asChild>
+              <a>
+                Add Your First Recipe
+              </a>
             </Button>
           </Link>
         </div>
-      ) : filteredRecipes.length === 0 ? (
+      )}
+
+      {filteredRecipes.length === 0 ? (
         <div className="text-center p-8 bg-muted rounded-lg">
           <p className="text-xl font-semibold mb-2">No recipes found</p>
           <p className="text-muted-foreground mb-4">
