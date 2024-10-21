@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { Prisma } from '@prisma/client';
+import prisma from '@/lib/prisma';
 import { writeFile, unlink } from 'fs/promises';
 import path from 'path';
 import { toTitleCase } from "@/app/utils/stringUtils";
@@ -38,7 +37,8 @@ export async function DELETE(
     return NextResponse.json({ 
       error: 'Error deleting recipe',
       title: 'Deletion Failed',
-      description: 'An unexpected error occurred while deleting the recipe. Please try again.'
+      description: 'An unexpected error occurred while deleting the recipe. Please try again.',
+      details: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
   }
 }
@@ -61,7 +61,12 @@ export async function GET(
     return NextResponse.json(recipe);
   } catch (error) {
     console.error('Error fetching recipe:', error);
-    return NextResponse.json({ error: 'Error fetching recipe' }, { status: 500 });
+    return NextResponse.json({ 
+      error: 'Error fetching recipe',
+      title: 'Fetch Failed',
+      description: 'An unexpected error occurred while fetching the recipe. Please try again.',
+      details: error instanceof Error ? error.message : String(error)
+    }, { status: 500 });
   }
 }
 
@@ -158,7 +163,8 @@ export async function PUT(
     return NextResponse.json({ 
       error: 'Error updating recipe',
       title: 'Update Failed',
-      description: 'An unexpected error occurred while updating the recipe. Please try again.'
+      description: 'An unexpected error occurred while updating the recipe. Please try again.',
+      details: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
   }
 }
