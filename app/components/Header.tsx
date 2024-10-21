@@ -11,81 +11,71 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/app/components/ui/tooltip"
+import { FC } from 'react';
 
-export function Header() {
+interface HeaderProps {
+  className?: string;
+}
+
+export const Header: FC<HeaderProps> = ({ className = '' }) => {
   const pathname = usePathname()
 
   return (
-    <header className="sticky top-0 z-40 w-full border-b bg-navy-blue text-white">
-      <div className="container mx-auto max-w-4xl flex h-16 items-center justify-between px-4">
-        <div className="flex items-center">
-          <Link href="/" className="flex items-center space-x-2 mr-6 logo">
-            <span className="text-lg font-bold">Irwin Kitchen</span>
-          </Link>
-        </div>
-        <TooltipProvider>
-          <nav className="flex items-center space-x-4">
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link
-                  href="/"
-                  className={cn(
-                    "flex items-center text-sm font-medium transition-colors hover:text-blue-200",
-                    pathname === "/" ? "text-blue-200" : "text-white"
-                  )}
-                  aria-label="Home"
-                >
-                  <Home className="h-5 w-5" />
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Home</p>
-              </TooltipContent>
-            </Tooltip>
-
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Link
-                  href="/add-recipe"
-                  className={cn(
-                    "flex items-center text-sm font-medium transition-colors hover:text-blue-200",
-                    pathname === "/add-recipe" ? "text-blue-200" : "text-white"
-                  )}
-                  aria-label="Add Recipe"
-                >
-                  <Plus className="h-5 w-5" />
-                </Link>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Add Recipe</p>
-              </TooltipContent>
-            </Tooltip>
-
-            <SignedOut>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <SignInButton mode="modal">
-                    <UserCircle className="h-5 w-5 text-white hover:text-blue-200 cursor-pointer" />
-                  </SignInButton>
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>Sign In</p>
-                </TooltipContent>
-              </Tooltip>
-            </SignedOut>
-
+    <header className={`bg-navy-blue text-white border-b ${className}`}>
+      <div className="container mx-auto max-w-4xl flex h-16 items-center justify-between px-4 sm:px-8">
+        <Link href="/" className="text-lg font-semibold">
+          Irwin Kitchen
+        </Link>
+        <div className="flex items-center space-x-6">
+          <nav className="flex items-center space-x-6 text-sm font-medium">
+            <Link href="/" className={cn("transition-colors hover:text-blue-200", pathname === "/" ? "text-blue-200" : "text-white")}>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Home className="h-5 w-5" />
+                    <span className="sr-only">Home</span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Home</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </Link>
             <SignedIn>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <UserButton afterSignOutUrl="/" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p>User Menu</p>
-                </TooltipContent>
-              </Tooltip>
+              <Link href="/add-recipe" className={cn("transition-colors hover:text-blue-200", pathname === "/add-recipe" ? "text-blue-200" : "text-white")}>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger>
+                      <Plus className="h-5 w-5" />
+                      <span className="sr-only">Add Recipe</span>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Add Recipe</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </Link>
             </SignedIn>
           </nav>
-        </TooltipProvider>
+          <SignedIn>
+            <UserButton afterSignOutUrl="/" />
+          </SignedIn>
+          <SignedOut>
+            <SignInButton>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <UserCircle className="h-5 w-5" />
+                    <span className="sr-only">Sign In</span>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Sign In</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </SignInButton>
+          </SignedOut>
+        </div>
       </div>
     </header>
   )
