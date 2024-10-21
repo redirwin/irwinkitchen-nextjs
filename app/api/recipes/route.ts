@@ -1,12 +1,10 @@
 import { NextResponse } from 'next/server'
-import { PrismaClient } from '@prisma/client'
-import { Prisma } from '@prisma/client'
+import prisma from '@/lib/prisma'
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 import slugify from 'slugify';
 import { toTitleCase } from "@/app/utils/stringUtils";
 
-const prisma = new PrismaClient()
-
-export async function GET() {
+export async function GET(request: Request) {
   try {
     const recipes = await prisma.recipe.findMany({
       include: { tags: true, ingredients: true, steps: true }
@@ -14,7 +12,12 @@ export async function GET() {
     return NextResponse.json(recipes)
   } catch (error) {
     console.error('Error fetching recipes:', error)
-    return NextResponse.json({ error: 'Error fetching recipes' }, { status: 500 })
+    return NextResponse.json({ 
+      error: 'Error fetching recipes',
+      title: 'Fetch Failed',
+      description: 'An unexpected error occurred while fetching recipes. Please try again.',
+      details: error instanceof Error ? error.message : String(error)
+    }, { status: 500 });
   }
 }
 
@@ -63,20 +66,19 @@ export async function POST(request: Request) {
 
     return NextResponse.json(recipe);
   } catch (error) {
-    if (error instanceof Prisma.PrismaClientKnownRequestError) {
-      if (error.code === 'P2002') {
-        return NextResponse.json({ 
-          error: 'A recipe with this name already exists.',
-          title: 'Duplicate Recipe',
-          description: 'Please choose a different name for your recipe.'
-        }, { status: 409 });
-      }
-    }
     console.error('Error creating recipe:', error);
+    if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
+      return NextResponse.json({ 
+        error: 'A recipe with this name already exists',
+        title: 'Duplicate Recipe Name',
+        description: 'Please choose a different name for your recipe.'
+      }, { status: 400 });
+    }
     return NextResponse.json({ 
       error: 'Error creating recipe',
-      title: 'Recipe Creation Failed',
-      description: 'An unexpected error occurred while creating the recipe. Please try again.'
+      title: 'Creation Failed',
+      description: 'An unexpected error occurred while creating the recipe. Please try again.',
+      details: error instanceof Error ? error.message : String(error)
     }, { status: 500 });
   }
 }
