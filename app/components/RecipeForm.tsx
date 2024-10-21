@@ -84,7 +84,9 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
           : typeof initialRecipe.tags === 'string'
           ? initialRecipe.tags
           : '',
-        steps: initialRecipe.steps.map(step => step.content),
+        steps: initialRecipe.steps.map(step => 
+          typeof step === 'string' ? step : step.content
+        ),
         image: null // Initialize image as null, we'll use imagePreview for display
       };
     }
@@ -174,7 +176,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
         }
         return step;
       })
-    }));
+    }))
   }
 
   const addStep = () => {
