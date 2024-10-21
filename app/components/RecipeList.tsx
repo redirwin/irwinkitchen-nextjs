@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { useRecipes } from '@/lib/recipeContext';
 import { useState, useEffect } from 'react';
-import { Loader2 } from 'lucide-react';
+import { Loader2, BookOpen, Search } from 'lucide-react';
 import { Button } from "@/app/components/ui/button"
 import { Recipe } from '@/types/Recipe';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -164,8 +164,9 @@ export default function RecipeList() {
         />
       </div>
 
-      {recipes.length === 0 && (
+      {recipes.length === 0 ? (
         <div className="text-center">
+          <BookOpen className="w-16 h-16 mx-auto mb-4 text-primary" />
           <p className="text-xl mb-4">You haven't added any recipes yet.</p>
           <Link href="/add-recipe" passHref legacyBehavior>
             <Button asChild>
@@ -175,13 +176,12 @@ export default function RecipeList() {
             </Button>
           </Link>
         </div>
-      )}
-
-      {filteredRecipes.length === 0 ? (
+      ) : filteredRecipes.length === 0 ? (
         <div className="text-center p-8 bg-muted rounded-lg">
-          <p className="text-xl font-semibold mb-2">No recipes found</p>
+          <Search className="w-16 h-16 mx-auto mb-4 text-primary" />
+          <p className="text-xl font-semibold mb-2">No recipes found matching your criteria</p>
           <p className="text-muted-foreground mb-4">
-            No recipes match your criteria. Try adjusting your tags or search terms.
+            Try adjusting your tags or search terms.
           </p>
           <Button onClick={handleClearSearch}>
             Show All Recipes
