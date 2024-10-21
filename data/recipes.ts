@@ -4,6 +4,7 @@ export const recipes: Recipe[] = [
   {
     id: "1",
     name: "Spaghetti Carbonara",
+    slug: "spaghetti-carbonara",
     shortDescription: "Classic Italian pasta dish",
     description: "A rich and creamy pasta dish with eggs, cheese, and pancetta.",
     ingredients: [
@@ -25,10 +26,12 @@ export const recipes: Recipe[] = [
     difficulty: "Medium",
     servingSize: "4",
     tags: "Italian,Pasta,Quick",
+    updatedAt: new Date(),
   },
   {
     id: "2",
     name: "Chicken Alfredo",
+    slug: "chicken-alfredo",
     shortDescription: "Creamy pasta with chicken",
     description: "Tender chicken pieces tossed in a rich Alfredo sauce served over fettuccine.",
     ingredients: [
@@ -50,10 +53,12 @@ export const recipes: Recipe[] = [
     difficulty: "Medium",
     servingSize: "4",
     tags: "Italian,Pasta,Chicken",
+    updatedAt: new Date(),
   },
   {
     id: "3",
     name: "Beef Tacos",
+    slug: "beef-tacos",
     shortDescription: "Flavorful beef tacos",
     description: "Ground beef tacos with a blend of spices served in soft tortillas.",
     ingredients: [
@@ -76,10 +81,12 @@ export const recipes: Recipe[] = [
     difficulty: "Easy",
     servingSize: "4",
     tags: "Mexican,Beef,Quick",
+    updatedAt: new Date(),
   },
   {
     id: "4",
     name: "Vegetable Stir Fry",
+    slug: "vegetable-stir-fry",
     shortDescription: "Quick and healthy stir fry",
     description: "A colorful mix of vegetables stir-fried in a savory sauce, served with rice.",
     ingredients: [
@@ -103,10 +110,12 @@ export const recipes: Recipe[] = [
     difficulty: "Easy",
     servingSize: "2",
     tags: "Asian,Vegetarian,Quick",
+    updatedAt: new Date(),
   },
   {
     id: "5",
     name: "Margherita Pizza",
+    slug: "margherita-pizza",
     shortDescription: "Classic Italian pizza",
     description: "Traditional Margherita pizza with fresh basil, mozzarella, and tomato sauce.",
     ingredients: [
@@ -127,6 +136,7 @@ export const recipes: Recipe[] = [
     difficulty: "Medium",
     servingSize: "4",
     tags: "Italian,Pizza,Vegetarian",
+    updatedAt: new Date(),
   },
 
 ];
