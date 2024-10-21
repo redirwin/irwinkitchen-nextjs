@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { SignInButton, UserButton, SignedIn, SignedOut } from "@clerk/nextjs"
+import { SignInButton, UserButton, useAuth } from "@clerk/nextjs"
 import { cn } from "@/app/utils/cn"
 import { Home, Plus, UserCircle } from "lucide-react"
 import {
@@ -19,6 +19,10 @@ interface HeaderProps {
 
 export const Header: FC<HeaderProps> = ({ className = '' }) => {
   const pathname = usePathname()
+  const { isLoaded, isSignedIn } = useAuth();
+
+  const iconClass = "h-5 w-5 text-white";
+  const linkClass = "flex items-center justify-center";
 
   return (
     <header className={`bg-navy-blue text-white border-b ${className}`}>
@@ -28,11 +32,11 @@ export const Header: FC<HeaderProps> = ({ className = '' }) => {
         </Link>
         <div className="flex items-center space-x-6">
           <nav className="flex items-center space-x-6 text-sm font-medium">
-            <Link href="/" className={cn("transition-colors hover:text-blue-200", pathname === "/" ? "text-blue-200" : "text-white")}>
+            <Link href="/" className={cn(linkClass, "transition-colors hover:text-blue-200", pathname === "/" ? "text-blue-200" : "text-white")}>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger>
-                    <Home className="h-5 w-5" />
+                    <Home className={iconClass} />
                     <span className="sr-only">Home</span>
                   </TooltipTrigger>
                   <TooltipContent>
@@ -41,12 +45,12 @@ export const Header: FC<HeaderProps> = ({ className = '' }) => {
                 </Tooltip>
               </TooltipProvider>
             </Link>
-            <SignedIn>
-              <Link href="/add-recipe" className={cn("transition-colors hover:text-blue-200", pathname === "/add-recipe" ? "text-blue-200" : "text-white")}>
+            {isSignedIn && (
+              <Link href="/add-recipe" className={cn(linkClass, "transition-colors hover:text-blue-200", pathname === "/add-recipe" ? "text-blue-200" : "text-white")}>
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger>
-                      <Plus className="h-5 w-5" />
+                      <Plus className={iconClass} />
                       <span className="sr-only">Add Recipe</span>
                     </TooltipTrigger>
                     <TooltipContent>
@@ -55,26 +59,37 @@ export const Header: FC<HeaderProps> = ({ className = '' }) => {
                   </Tooltip>
                 </TooltipProvider>
               </Link>
-            </SignedIn>
+            )}
           </nav>
-          <SignedIn>
-            <UserButton afterSignOutUrl="/" />
-          </SignedIn>
-          <SignedOut>
-            <SignInButton>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <UserCircle className="h-5 w-5" />
-                    <span className="sr-only">Sign In</span>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Sign In</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </SignInButton>
-          </SignedOut>
+          {isLoaded && (
+            <>
+              {isSignedIn ? (
+                <UserButton 
+                  afterSignOutUrl="/"
+                  appearance={{
+                    elements: {
+                      avatarBox: "w-5 h-5"
+                    }
+                  }}
+                />
+              ) : (
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SignInButton mode="modal">
+                        <button className={cn(linkClass, "bg-transparent border-none cursor-pointer p-0 m-0")}>
+                          <UserCircle className={iconClass} />
+                        </button>
+                      </SignInButton>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Sign In</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              )}
+            </>
+          )}
         </div>
       </div>
     </header>
