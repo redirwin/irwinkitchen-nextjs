@@ -79,7 +79,11 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
     if (initialRecipe) {
       return {
         ...initialRecipe,
-        tags: initialRecipe.tags ? initialRecipe.tags.join(', ') : '',
+        tags: Array.isArray(initialRecipe.tags)
+          ? initialRecipe.tags.join(', ')
+          : typeof initialRecipe.tags === 'string'
+          ? initialRecipe.tags
+          : '',
         steps: initialRecipe.steps.map(step => step.content)
       };
     }
