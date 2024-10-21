@@ -1,6 +1,7 @@
 import { RecipeDetail } from '@/app/components/RecipeDetail';
 import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
+import { Recipe } from '@/types/Recipe';
 
 export default async function RecipePage({ params }: { params: { slug: string } }) {
   try {

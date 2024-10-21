@@ -12,4 +12,5 @@ export interface Recipe {
   tags: string;
   image?: File | null;
   imageUrl?: string;
+  updatedAt: Date;
 }
