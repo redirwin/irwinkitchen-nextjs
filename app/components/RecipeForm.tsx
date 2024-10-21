@@ -84,7 +84,8 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
           : typeof initialRecipe.tags === 'string'
           ? initialRecipe.tags
           : '',
-        steps: initialRecipe.steps.map(step => step.content)
+        steps: initialRecipe.steps.map(step => step.content),
+        image: null // Initialize image as null, we'll use imagePreview for display
       };
     }
     return {
@@ -100,7 +101,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
       image: null as File | null,
     };
   })
-  const [imagePreview, setImagePreview] = useState<string | null>(initialRecipe?.image || null)
+  const [imagePreview, setImagePreview] = useState<string | null>(initialRecipe?.imageUrl || null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [error, setError] = useState<string | null>(null)
   const [hasExistingImage, setHasExistingImage] = useState(!!initialRecipe?.imageUrl)
