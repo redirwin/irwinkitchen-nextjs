@@ -658,7 +658,19 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
                   <Users className="h-4 w-4 mr-2" />
                   <span>Serving Size</span>
                 </Label>
-                <Input id="servingSize" name="servingSize" type="number" value={recipe.servingSize} onChange={handleChange} />
+                <Input 
+                  id="servingSize" 
+                  name="servingSize" 
+                  type="number" 
+                  value={recipe.servingSize} 
+                  onChange={handleChange} 
+                  min="1" 
+                  onKeyDown={(e) => {
+                    if (e.key === '-' || e.key === 'e') {
+                      e.preventDefault();
+                    }
+                  }}
+                />
               </div>
             </div>
           </CardContent>

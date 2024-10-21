@@ -23,6 +23,7 @@ export function RecipeCard({ recipe, selectedTags, onTagClick, onClick }: Recipe
               fill
               sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
               style={{ objectFit: 'cover' }}
+              priority={true}
             />
           </div>
         ) : (
