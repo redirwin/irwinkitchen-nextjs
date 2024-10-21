@@ -21,6 +21,7 @@ import {
   CollapsibleTrigger,
 } from "@/app/components/ui/collapsible"
 import { ChevronDown, ChevronUp } from "lucide-react"
+import { Recipe } from '@/types/Recipe';
 
 interface RecipeFormProps {
   initialRecipe?: Recipe;
