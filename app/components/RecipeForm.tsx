@@ -172,7 +172,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
       ...prev,
       steps: prev.steps.map((step, i) => {
         if (i === index) {
-          return typeof step === 'string' ? value : { ...step, content: value };
+          return value;
         }
         return step;
       })
@@ -281,7 +281,9 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
     setError(null);
 
     // First, expand all sections
-    setSectionStates(prev => Object.fromEntries(Object.keys(prev).map(key => [key, true])));
+    setSectionStates(prev => Object.fromEntries(
+      Object.keys(prev).map(key => [key, true])
+    ) as typeof prev);
 
     // Use setTimeout to allow the DOM to update before validation
     setTimeout(() => {
@@ -311,18 +313,13 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
     const formData = new FormData(formRef.current);
 
     // Format ingredients
-    formData.set('ingredients', JSON.stringify(recipe.ingredients.map(({ id, recipeId, ...rest }) => rest)));
+    formData.set('ingredients', JSON.stringify(recipe.ingredients));
 
     // Format steps
-    formData.set('steps', JSON.stringify(recipe.steps.map((step, index) => {
-      if (typeof step === 'string') {
-        return { order: index + 1, content: step };
-      } else if (typeof step === 'object' && step.content) {
-        return { order: index + 1, content: step.content };
-      }
-      return { order: index + 1, content: '' };
-    })));
-
+    formData.set('steps', JSON.stringify(recipe.steps.map((step, index) => ({
+      order: index + 1,
+      content: step
+    }))))
     // Format tags
     formData.set('tags', recipe.tags);
 
@@ -357,11 +354,11 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
       }
       
       router.push(`/recipes/${savedRecipe.slug}`);
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error saving recipe:', error);
       toast({
-        title: error.title || "Error",
-        description: error.description || error.message || 'An error occurred while saving the recipe',
+        title: error instanceof Error ? error.name : "Error",
+        description: error instanceof Error ? error.message : 'An error occurred while saving the recipe',
         variant: "destructive",
       });
     }
@@ -392,11 +389,11 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
       });
 
       router.push('/');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error deleting recipe:', error);
       toast({
-        title: error.title || "Deletion Failed",
-        description: error.description || error.message || 'An error occurred while deleting the recipe',
+        title: error instanceof Error ? error.name : "Deletion Failed",
+        description: error instanceof Error ? error.message : 'An error occurred while deleting the recipe',
         variant: "destructive",
       });
     } finally {
@@ -423,7 +420,13 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
           // In a real scenario, you might want to fetch fresh data from the API
           setRecipe({
             ...initialRecipe,
-            tags: initialRecipe.tags.map(tag => tag.name).join(', ')
+            tags: Array.isArray(initialRecipe.tags)
+              ? initialRecipe.tags.map(tag => tag.name).join(', ')
+              : typeof initialRecipe.tags === 'string'
+              ? initialRecipe.tags
+              : '',
+            steps: initialRecipe.steps.map(step => typeof step === 'string' ? step : step.content),
+            image: null
           });
           setImagePreview(initialRecipe.imageUrl || null);
           setHasExistingImage(!!initialRecipe.imageUrl);
@@ -586,7 +589,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
               <div key={index} className="flex items-start space-x-2 mb-4">
                 <Textarea
                   placeholder={`Step ${index + 1}`}
-                  value={step.content}
+                  value={step}
                   onChange={(e) => handleStepChange(index, e.target.value)}
                   className="flex-grow"
                 />
