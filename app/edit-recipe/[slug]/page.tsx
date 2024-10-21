@@ -3,6 +3,7 @@
 import { RecipeForm } from '@/app/components/RecipeForm';
 import { notFound } from 'next/navigation';
 import { useState, useEffect } from 'react';
+import { Recipe } from '@/types/Recipe';  // Add this import
 
 export default function EditRecipePage({ params }: { params: { slug: string } }) {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
