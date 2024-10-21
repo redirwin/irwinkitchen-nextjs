@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import prisma from '@/lib/prisma';
+import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library';
 import { writeFile, unlink } from 'fs/promises';
 import path from 'path';
 import { toTitleCase } from "@/app/utils/stringUtils";
@@ -153,7 +154,7 @@ export async function PUT(
     return NextResponse.json(recipe);
   } catch (error) {
     console.error('Error updating recipe:', error);
-    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') {
+    if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
       return NextResponse.json({ 
         error: 'A recipe with this name already exists',
         title: 'Duplicate Recipe Name',
