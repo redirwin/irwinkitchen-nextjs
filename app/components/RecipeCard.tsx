@@ -20,8 +20,9 @@ export function RecipeCard({ recipe, selectedTags, onTagClick, onClick }: Recipe
             <Image
               src={recipe.imageUrl}
               alt={recipe.name}
-              layout="fill"
-              objectFit="cover"
+              fill
+              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
+              style={{ objectFit: 'cover' }}
             />
           </div>
         ) : (
