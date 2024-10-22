@@ -71,3 +71,10 @@ prisma/dev.db
 
 # Ignore SQL files
 *.sql
+
+# Ignore image files
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.webp
