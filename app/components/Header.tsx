@@ -4,7 +4,7 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { SignInButton, UserButton, useAuth } from "@clerk/nextjs"
 import { cn } from "@/app/utils/cn"
-import { Home, Plus, UserCircle } from "lucide-react"
+import { Home, Plus, UserCircle, Soup } from "lucide-react"
 import {
   Tooltip,
   TooltipContent,
@@ -27,8 +27,9 @@ export const Header: FC<HeaderProps> = ({ className = '' }) => {
   return (
     <header className={`bg-navy-blue text-white border-b ${className}`}>
       <div className="container mx-auto max-w-4xl flex h-16 items-center justify-between px-4 sm:px-8">
-        <Link href="/" className="text-lg font-semibold">
-          Irwin Kitchen
+        <Link href="/" className="text-lg font-semibold flex items-center relative">
+          <Soup className="h-6 w-6 mr-2 transform scale-x-[-1] absolute bottom-[0.35em]" />
+          <span className="pl-8">Irwin Family Recipe Book</span>
         </Link>
         <div className="flex items-center space-x-6">
           <nav className="flex items-center space-x-6 text-sm font-medium">

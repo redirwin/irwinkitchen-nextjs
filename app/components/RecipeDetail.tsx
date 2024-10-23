@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from "@/app/components/ui/button";
-import { Pencil, Home, Clipboard, ListOrdered, ChefHat, Tags, Printer } from "lucide-react";
+import { Pencil, ArrowLeft, Clipboard, ListOrdered, ChefHat, Tags, Printer } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
 import { toTitleCase } from "@/app/utils/stringUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
@@ -46,8 +46,7 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
   };
 
   const handleBack = () => {
-    sessionStorage.setItem('returningFromDetail', 'true');
-    router.push('/');
+    router.back();
   };
 
   const handlePrint = () => {
@@ -143,11 +142,11 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
             <Tooltip>
               <TooltipTrigger asChild>
                 <Button variant="outline" size="icon" onClick={handleBack}>
-                  <Home className="h-4 w-4" />
+                  <ArrowLeft className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
               <TooltipContent>
-                <p>Back to Home</p>
+                <p>Go Back</p>
               </TooltipContent>
             </Tooltip>
           </div>

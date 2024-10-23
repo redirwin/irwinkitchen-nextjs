@@ -19,8 +19,14 @@ const geistMono = localFont({
 });
 
 export const metadata: Metadata = {
-  title: "Family Recipe Book",
+  title: "Irwin Family Recipe Book",
   description: "A personal recipe application for family use",
+  icons: [
+    {
+      rel: 'icon',
+      url: '/favicon.ico',
+    },
+  ],
 };
 
 export default function RootLayout({
