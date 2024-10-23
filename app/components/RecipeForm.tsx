@@ -533,7 +533,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
           hasError={sectionErrors.ingredients}
           isOpen={sectionStates.ingredients}
           onOpenChange={(isOpen) => setSectionStates(prev => ({ ...prev, ingredients: isOpen }))}
-          contentClassName="p-0" // Change this line
+          contentClassName="p-0"
         >
           <CardContent>
             {recipe.ingredients.map((ingredient, index) => (
@@ -545,24 +545,24 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
                     onChange={(e) => handleIngredientChange(index, 'amount', e.target.value)}
                     className="w-full sm:w-1/3"
                   />
-                  <Input
-                    placeholder="Ingredient name"
-                    value={ingredient.name}
-                    onChange={(e) => handleIngredientChange(index, 'name', e.target.value)}
-                    className="w-full sm:w-2/3"
-                  />
+                  <div className="relative w-full sm:w-2/3">
+                    <Input
+                      placeholder="Ingredient name"
+                      value={ingredient.name}
+                      onChange={(e) => handleIngredientChange(index, 'name', e.target.value)}
+                      className="pr-8 w-full"
+                    />
+                    {recipe.ingredients.length > 1 && (
+                      <button
+                        type="button"
+                        onClick={() => removeIngredient(index)}
+                        className="absolute inset-y-0 right-0 flex items-center pr-3"
+                      >
+                        <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                      </button>
+                    )}
+                  </div>
                 </div>
-                {recipe.ingredients.length > 1 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => removeIngredient(index)}
-                    className="flex-shrink-0"
-                  >
-                    <X className="h-4 w-4" />
-                  </Button>
-                )}
               </div>
             ))}
             <Button
@@ -586,27 +586,25 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
           hasError={sectionErrors.steps}
           isOpen={sectionStates.steps}
           onOpenChange={(isOpen) => setSectionStates(prev => ({ ...prev, steps: isOpen }))}
-          contentClassName="p-0" // Change this line
+          contentClassName="p-0"
         >
           <CardContent>
             {recipe.steps.map((step, index) => (
-              <div key={index} className="flex items-start space-x-2 mb-4">
+              <div key={index} className="relative mb-4">
                 <Textarea
                   placeholder={`Step ${index + 1}`}
                   value={step}
                   onChange={(e) => handleStepChange(index, e.target.value)}
-                  className="flex-grow"
+                  className="pr-8"
                 />
                 {recipe.steps.length > 1 && (
-                  <Button
+                  <button
                     type="button"
-                    variant="ghost"
-                    size="icon"
                     onClick={() => removeStep(index)}
-                    className="flex-shrink-0 mt-1"
+                    className="absolute top-2 right-2"
                   >
-                    <X className="h-4 w-4" />
-                  </Button>
+                    <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                  </button>
                 )}
               </div>
             ))}
