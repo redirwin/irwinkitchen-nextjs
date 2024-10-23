@@ -3,10 +3,12 @@
 import { RecipeForm } from '@/app/components/RecipeForm';
 import { notFound } from 'next/navigation';
 import { useState, useEffect } from 'react';
-import { Recipe } from '@/types/Recipe';  // Add this import
+import { Recipe } from '@/types/Recipe';
+import { Loader2 } from 'lucide-react';
 
 export default function EditRecipePage({ params }: { params: { slug: string } }) {
   const [recipe, setRecipe] = useState<Recipe | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     async function fetchRecipe() {
@@ -25,6 +27,8 @@ export default function EditRecipePage({ params }: { params: { slug: string } })
       } catch (error) {
         console.error('Error fetching recipe:', error);
         notFound();
+      } finally {
+        setIsLoading(false);
       }
     }
 
@@ -35,8 +39,17 @@ export default function EditRecipePage({ params }: { params: { slug: string } })
     setRecipe(updatedRecipe);
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[30vh]">
+        <Loader2 className="w-10 h-10 animate-spin text-primary" />
+        <p className="mt-4 text-lg text-muted-foreground">Loading recipe...</p>
+      </div>
+    );
+  }
+
   if (!recipe) {
-    return <div>Loading...</div>;
+    return notFound();
   }
 
   return (

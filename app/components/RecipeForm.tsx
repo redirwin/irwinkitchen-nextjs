@@ -35,10 +35,10 @@ interface CollapsibleCardProps {
   title: string;
   icon: React.ReactNode;
   children: React.ReactNode;
-  defaultOpen?: boolean;
   hasError?: boolean;
   isOpen: boolean;
   onOpenChange: (isOpen: boolean) => void;
+  contentClassName?: string; // Add this line
 }
 
 function CollapsibleCard({ 
@@ -47,7 +47,8 @@ function CollapsibleCard({
   children, 
   hasError = false, 
   isOpen, 
-  onOpenChange 
+  onOpenChange,
+  contentClassName // Add this parameter
 }: CollapsibleCardProps) {
   return (
     <Collapsible open={isOpen} onOpenChange={onOpenChange}>
@@ -64,7 +65,7 @@ function CollapsibleCard({
           </CardHeader>
         </CollapsibleTrigger>
         <CollapsibleContent>
-          <CardContent>{children}</CardContent>
+          <CardContent className={contentClassName}>{children}</CardContent>
         </CollapsibleContent>
       </Card>
     </Collapsible>
@@ -499,6 +500,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
           hasError={sectionErrors.basicInfo}
           isOpen={sectionStates.basicInfo}
           onOpenChange={(isOpen) => setSectionStates(prev => ({ ...prev, basicInfo: isOpen }))}
+          contentClassName="p-0" // Change this line
         >
           <CardContent className="space-y-4">
             <div>
@@ -531,6 +533,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
           hasError={sectionErrors.ingredients}
           isOpen={sectionStates.ingredients}
           onOpenChange={(isOpen) => setSectionStates(prev => ({ ...prev, ingredients: isOpen }))}
+          contentClassName="p-0" // Change this line
         >
           <CardContent>
             {recipe.ingredients.map((ingredient, index) => (
@@ -583,6 +586,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
           hasError={sectionErrors.steps}
           isOpen={sectionStates.steps}
           onOpenChange={(isOpen) => setSectionStates(prev => ({ ...prev, steps: isOpen }))}
+          contentClassName="p-0" // Change this line
         >
           <CardContent>
             {recipe.steps.map((step, index) => (
@@ -627,6 +631,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
           hasError={sectionErrors.cookingDetails}
           isOpen={sectionStates.cookingDetails}
           onOpenChange={(isOpen) => setSectionStates(prev => ({ ...prev, cookingDetails: isOpen }))}
+          contentClassName="p-0" // Change this line
         >
           <CardContent>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -684,6 +689,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
           hasError={sectionErrors.tags}
           isOpen={sectionStates.tags}
           onOpenChange={(isOpen) => setSectionStates(prev => ({ ...prev, tags: isOpen }))}
+          contentClassName="p-0" // Change this line
         >
           <CardContent>
             <TagInput
@@ -703,6 +709,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
           hasError={sectionErrors.image}
           isOpen={sectionStates.image}
           onOpenChange={(isOpen) => setSectionStates(prev => ({ ...prev, image: isOpen }))}
+          contentClassName="p-0" // Change this line
         >
           <CardContent>
             <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">

@@ -73,8 +73,4 @@ prisma/dev.db
 *.sql
 
 # Ignore image files
-*.png
-*.jpg
-*.jpeg
-*.gif
-*.webp
+public/images/recipes
