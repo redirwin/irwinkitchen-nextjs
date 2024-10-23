@@ -14,7 +14,7 @@ import { Loader2 } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog"
 import { TagInput } from './TagInput';
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card"
-import { ChefHat, Clipboard, ListOrdered, Clock, BarChart, Users, Tags, Image as ImageIcon, PlusCircle, X, Trash2, Flame } from "lucide-react"
+import { ChefHat, Clipboard, ListOrdered, Clock, BarChart, Users, Tags, Image as ImageIcon, PlusCircle, X, Trash2, Flame, X as CancelIcon, Save as SaveIcon } from "lucide-react"
 import {
   Collapsible,
   CollapsibleContent,
@@ -759,23 +759,39 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
         </CollapsibleCard>
       </div>
 
-      <div className="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0">
-        <div className="w-full sm:w-auto">
+      <div className="flex justify-between items-center">
+        <div className="w-auto">
           {isEditing && (
             <Button 
               type="button" 
               variant="destructive" 
               onClick={() => setShowDeleteModal(true)} 
-              className="w-full sm:w-auto"
+              className="w-auto"
               aria-label="Delete Recipe"
             >
               <Trash2 className="h-5 w-5" />
             </Button>
           )}
         </div>
-        <div className="flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-2 w-full sm:w-auto">
-          <Button type="button" variant="outline" onClick={handleCancel} className="w-full sm:w-auto">Cancel</Button>
-          <Button type="submit" className="w-full sm:w-auto">{initialRecipe ? 'Save Recipe' : 'Add Recipe'}</Button>
+        <div className="flex space-x-2">
+          <Button 
+            type="button" 
+            variant="outline" 
+            onClick={handleCancel} 
+            className="w-auto"
+            aria-label="Cancel"
+          >
+            <CancelIcon className="h-5 w-5 sm:mr-2" />
+            <span className="hidden sm:inline">Cancel</span>
+          </Button>
+          <Button 
+            type="submit" 
+            className="w-auto"
+            aria-label={initialRecipe ? 'Save Recipe' : 'Add Recipe'}
+          >
+            <SaveIcon className="h-5 w-5 sm:mr-2" />
+            <span className="hidden sm:inline">{initialRecipe ? 'Save Recipe' : 'Add Recipe'}</span>
+          </Button>
         </div>
       </div>
 
