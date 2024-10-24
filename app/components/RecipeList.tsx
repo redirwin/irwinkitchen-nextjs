@@ -153,7 +153,7 @@ export default function RecipeList() {
     <div className="px-4 sm:px-6 md:px-8 max-w-7xl mx-auto">
       <div className="mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-          <h1 className="text-3xl font-bold">Browse & Search Recipes</h1>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Browse & Search Recipes</h1>
           <SearchBar searchQuery={searchQuery} onSearchChange={handleSearchChange} />
         </div>
         <TagList 

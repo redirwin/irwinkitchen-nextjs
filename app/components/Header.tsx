@@ -28,8 +28,8 @@ export const Header: FC<HeaderProps> = ({ className = '' }) => {
     <header className={`bg-navy-blue text-white border-b ${className}`}>
       <div className="container mx-auto max-w-4xl flex h-16 items-center justify-between px-4 sm:px-8">
         <Link href="/" className="text-lg font-semibold flex items-center relative">
-          <Soup className="h-6 w-6 mr-2 transform scale-x-[-1] absolute bottom-[0.35em]" />
-          <span className="pl-8">Irwin Family Recipe Book</span>
+          <Soup className="h-6 w-6 mr-2 transform scale-x-[-1] sm:relative sm:transform-none sm:bottom-[0.18em]" />
+          <span className="pl-0 sm:pl-0 mr-2 sm:mr-0 leading-none min-w-[175px]">Irwin Family<wbr /> Recipe Book</span>
         </Link>
         <div className="flex items-center space-x-6">
           <nav className="flex items-center space-x-6 text-sm font-medium">
