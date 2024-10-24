@@ -22,6 +22,7 @@ import {
 } from "@/app/components/ui/collapsible"
 import { ChevronDown, ChevronUp } from "lucide-react"
 import { Recipe } from '@/types/Recipe';
+import { supabase } from '@/lib/supabaseClient'
 
 interface RecipeFormProps {
   initialRecipe?: Recipe;

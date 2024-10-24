@@ -127,6 +127,12 @@ export default function RecipeList() {
     setCurrentPage(1);
   };
 
+  const resetFilters = () => {
+    setSearchQuery('');
+    setSelectedTags([]);
+    setCurrentPage(1);
+  };
+
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const pageParam = urlParams.get('page');
@@ -158,7 +164,7 @@ export default function RecipeList() {
           <SearchBar 
             searchQuery={searchQuery} 
             onSearchChange={handleSearchChange} 
-            onClearSearch={handleClearSearch}
+            onClearSearch={resetFilters}
           />
         </div>
         <TagList 
@@ -188,7 +194,7 @@ export default function RecipeList() {
           <p className="text-muted-foreground mb-4">
             Try adjusting your tags or search terms.
           </p>
-          <Button onClick={handleClearSearch}>
+          <Button onClick={resetFilters}>
             Show All Recipes
           </Button>
         </div>

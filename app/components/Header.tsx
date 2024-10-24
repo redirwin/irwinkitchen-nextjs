@@ -74,11 +74,20 @@ export const Header: FC<HeaderProps> = ({ className = '' }) => {
                   }}
                 />
               ) : (
-                <SignInButton mode="modal">
-                  <button className={cn(linkClass, "bg-transparent border-none cursor-pointer p-0 m-0")}>
-                    <UserCircle className={iconClass} />
-                  </button>
-                </SignInButton>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <SignInButton mode="modal">
+                        <button className={cn(linkClass, "bg-transparent border-none cursor-pointer p-0 m-0")}>
+                          <UserCircle className={iconClass} />
+                        </button>
+                      </SignInButton>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Sign In</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
               )}
             </>
           )}
