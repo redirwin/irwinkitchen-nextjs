@@ -29,7 +29,9 @@ export default function RecipeList() {
         const response = await fetch('/api/recipes');
         if (!response.ok) throw new Error('Failed to fetch recipes');
         const data = await response.json();
-        setRecipes(data);
+        // Sort recipes alphabetically by name
+        const sortedRecipes = data.sort((a: Recipe, b: Recipe) => a.name.localeCompare(b.name));
+        setRecipes(sortedRecipes);
       } catch (error) {
         console.error('Error fetching recipes:', error);
       } finally {
@@ -122,7 +124,6 @@ export default function RecipeList() {
 
   const handleClearSearch = () => {
     setSearchQuery('');
-    setSelectedTags([]);
     setCurrentPage(1);
   };
 
@@ -154,7 +155,11 @@ export default function RecipeList() {
       <div className="mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Browse & Search Recipes</h1>
-          <SearchBar searchQuery={searchQuery} onSearchChange={handleSearchChange} />
+          <SearchBar 
+            searchQuery={searchQuery} 
+            onSearchChange={handleSearchChange} 
+            onClearSearch={handleClearSearch}
+          />
         </div>
         <TagList 
           allTags={allTags} 

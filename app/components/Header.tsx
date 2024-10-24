@@ -29,7 +29,7 @@ export const Header: FC<HeaderProps> = ({ className = '' }) => {
       <div className="container mx-auto max-w-4xl flex h-16 items-center justify-between px-4 sm:px-8">
         <Link href="/" className="text-lg font-semibold flex items-center relative">
           <Soup className="h-6 w-6 mr-2 transform scale-x-[-1] sm:relative sm:transform-none sm:bottom-[0.18em]" />
-          <span className="pl-0 sm:pl-0 mr-2 sm:mr-0 leading-none min-w-[175px]">Irwin Family<wbr /> Recipe Book</span>
+          <span className="pl-0 sm:pl-0 mr-2 sm:mr-0 leading-none ">Irwin Family<wbr /> Recipe Book</span>
         </Link>
         <div className="flex items-center space-x-6">
           <nav className="flex items-center space-x-6 text-sm font-medium">
@@ -74,20 +74,11 @@ export const Header: FC<HeaderProps> = ({ className = '' }) => {
                   }}
                 />
               ) : (
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <SignInButton mode="modal">
-                        <button className={cn(linkClass, "bg-transparent border-none cursor-pointer p-0 m-0")}>
-                          <UserCircle className={iconClass} />
-                        </button>
-                      </SignInButton>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Sign In</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
+                <SignInButton mode="modal">
+                  <button className={cn(linkClass, "bg-transparent border-none cursor-pointer p-0 m-0")}>
+                    <UserCircle className={iconClass} />
+                  </button>
+                </SignInButton>
               )}
             </>
           )}

@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from "@/app/components/ui/button";
-import { Pencil, ArrowLeft, Clipboard, ListOrdered, ChefHat, Tags, Printer } from "lucide-react";
+import { Pencil, ArrowLeft, Clipboard, ListOrdered, ChefHat, Tags, Printer, Home } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
 import { toTitleCase } from "@/app/utils/stringUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
@@ -46,6 +46,8 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
   };
 
   const handleBack = () => {
+    // Set a flag to indicate we're returning from the detail page
+    sessionStorage.setItem('returningFromDetail', 'true');
     router.back();
   };
 
@@ -100,6 +102,11 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
     `;
   };
 
+  const handleHome = () => {
+    // Navigate to the home page without preserving list state
+    router.push('/');
+  };
+
   return (
     <div className="max-w-3xl mx-auto p-6">
       {recipe.imageUrl && (
@@ -113,10 +120,10 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
           />
         </div>
       )}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">{recipe.name}</h1>
+      <div className="flex flex-wrap items-start justify-between mb-6">
+        <h1 className="text-3xl font-bold mr-4 mb-4 xs:mb-0">{recipe.name}</h1>
         <TooltipProvider>
-          <div className="flex space-x-2">
+          <div className="flex flex-wrap xs:flex-nowrap space-x-2">
             {isSignedIn && (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -137,6 +144,16 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
               </TooltipTrigger>
               <TooltipContent>
                 <p>Print Recipe</p>
+              </TooltipContent>
+            </Tooltip>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="icon" onClick={handleHome}>
+                  <Home className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>
+                <p>Go to Home</p>
               </TooltipContent>
             </Tooltip>
             <Tooltip>
