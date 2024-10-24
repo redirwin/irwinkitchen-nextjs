@@ -15,8 +15,8 @@ export function RecipeCard({ recipe, selectedTags, onTagClick, onClick }: Recipe
   return (
     <div className="h-full cursor-pointer" onClick={onClick}>
       <Card className="shadow-md hover:shadow-lg transition-all duration-300 ease-in-out hover:-translate-y-1 h-full flex flex-col">
-        {recipe.imageUrl ? (
-          <div className="relative w-full h-48">
+        <div className="relative w-full h-48 overflow-hidden">
+          {recipe.imageUrl ? (
             <Image
               src={recipe.imageUrl}
               alt={recipe.name}
@@ -25,16 +25,16 @@ export function RecipeCard({ recipe, selectedTags, onTagClick, onClick }: Recipe
               style={{ objectFit: 'cover' }}
               priority={true}
             />
-          </div>
-        ) : (
-          <div className="relative w-full h-48 bg-gray-200">
-            {/* Placeholder content */}
-          </div>
-        )}
+          ) : (
+            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+              <span className="text-gray-400">No image available</span>
+            </div>
+          )}
+        </div>
         <CardHeader className="flex-grow">
           <CardTitle className="line-clamp-2">{recipe.name}</CardTitle>
           {recipe.shortDescription && (
-            <CardDescription className="line-clamp-3">
+            <CardDescription className="line-clamp-3 mt-2">
               {recipe.shortDescription}
             </CardDescription>
           )}
