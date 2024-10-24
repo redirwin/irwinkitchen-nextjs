@@ -241,10 +241,6 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
     }
   }
 
-  const handleImageClick = () => {
-    fileInputRef.current?.click()
-  }
-
   const handleRemoveImage = () => {
     setRecipe(prev => ({ ...prev, image: null }));
     setImagePreview(null);
