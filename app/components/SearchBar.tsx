@@ -12,7 +12,7 @@ export function SearchBar({ searchQuery, onSearchChange, onClearSearch }: Search
     <div className="w-full sm:w-64 md:w-80 relative">
       <Input 
         type="text"
-        placeholder="Search recipes..." 
+        placeholder="Search..." 
         value={searchQuery}
         onChange={onSearchChange}
         className="w-full pr-8"

@@ -12,6 +12,9 @@ import { TagList } from './TagList';
 import { RecipeCard } from './RecipeCard';
 import { PaginationControls } from './PaginationControls';
 import { useSwipeable } from 'react-swipeable';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/app/components/ui/select";
+import { Input } from "@/app/components/ui/input";
+import { TooltipProvider, Tooltip, TooltipTrigger, TooltipContent } from "@/app/components/ui/tooltip";
 
 export default function RecipeList() {
   const { recipes, setRecipes } = useRecipes();
@@ -19,12 +22,12 @@ export default function RecipeList() {
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
-  const router = useRouter();
-  const searchParams = useSearchParams();
-  const recipesPerPage = {
+  const [recipesPerPage, setRecipesPerPage] = useState({
     mobile: 1,
     desktop: 6
-  };
+  });
+  const [tempRecipesPerPage, setTempRecipesPerPage] = useState(recipesPerPage.desktop.toString());
+  const router = useRouter();
 
   useEffect(() => {
     const fetchRecipes = async () => {
@@ -67,10 +70,17 @@ export default function RecipeList() {
     const loadSavedState = () => {
       const savedState = sessionStorage.getItem('recipeListState');
       if (savedState) {
-        const { currentPage, selectedTags, searchQuery } = JSON.parse(savedState);
+        const { currentPage, selectedTags, searchQuery, recipesPerPage } = JSON.parse(savedState);
         setCurrentPage(currentPage);
         setSelectedTags(selectedTags);
         setSearchQuery(searchQuery);
+        if (recipesPerPage) { // Add this check
+          setRecipesPerPage(prev => ({
+            ...prev,
+            desktop: recipesPerPage
+          }));
+          setTempRecipesPerPage(recipesPerPage.toString());
+        }
         sessionStorage.removeItem('recipeListState');
       }
     };
@@ -98,7 +108,8 @@ export default function RecipeList() {
     const state = {
       currentPage,
       selectedTags,
-      searchQuery
+      searchQuery,
+      recipesPerPage: recipesPerPage.desktop // Add this line
     };
     sessionStorage.setItem('recipeListState', JSON.stringify(state));
     sessionStorage.setItem('returningFromDetail', 'true');
@@ -142,6 +153,7 @@ export default function RecipeList() {
 
   const resetTags = () => {
     setSelectedTags([]);
+    setSearchQuery(''); // Add this line to clear the search query
     setCurrentPage(1);
   };
 
@@ -176,62 +188,78 @@ export default function RecipeList() {
     trackMouse: true
   });
 
+  const handleRecipesPerPageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setTempRecipesPerPage(e.target.value);
+  };
+
+  const applyRecipesPerPage = () => {
+    const newValue = parseInt(tempRecipesPerPage);
+    if (!isNaN(newValue) && newValue > 0) {
+      setRecipesPerPage(prev => ({
+        ...prev,
+        desktop: newValue
+      }));
+      setTempRecipesPerPage(newValue.toString()); // Add this line
+      setCurrentPage(1);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-64">
         <Loader2 className="w-10 h-10 animate-spin text-primary" />
-        <p className="mt-4 text-lg text-muted-foreground">Loading delicious recipes...</p>
+        <p className="mt-4 text-lg text-muted-foreground">Recipes loading...</p>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto">
-      <div className="mb-6">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Browse & Search Recipes</h1>
-          <SearchBar 
-            searchQuery={searchQuery} 
-            onSearchChange={handleSearchChange} 
-            onClearSearch={resetFilters}
+    <div className="max-w-7xl mx-auto flex flex-col min-h-[calc(100vh-4rem)]">
+      <div className="flex-grow">
+        <div className="mb-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+            <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Browse & Search</h1>
+            <SearchBar 
+              searchQuery={searchQuery} 
+              onSearchChange={handleSearchChange} 
+              onClearSearch={resetFilters}
+            />
+          </div>
+          <TagList 
+            allTags={allTags} 
+            selectedTags={selectedTags} 
+            onTagToggle={toggleTag} 
+            onResetTags={resetTags} // This now resets both tags and search query
           />
         </div>
-        <TagList 
-          allTags={allTags} 
-          selectedTags={selectedTags} 
-          onTagToggle={toggleTag} 
-          onResetTags={resetTags} 
-        />
-      </div>
 
-      {recipes.length === 0 ? (
-        <div className="text-center">
-          <BookOpen className="w-16 h-16 mx-auto mb-4 text-primary" />
-          <p className="text-xl mb-4">You haven't added any recipes yet.</p>
-          <Link href="/add-recipe" passHref legacyBehavior>
-            <Button asChild>
-              <a>
-                Add Your First Recipe
-              </a>
+        {recipes.length === 0 ? (
+          <div className="text-center">
+            <BookOpen className="w-16 h-16 mx-auto mb-4 text-primary" />
+            <p className="text-xl mb-4">You haven't added any recipes yet.</p>
+            <Link href="/add-recipe" passHref legacyBehavior>
+              <Button asChild>
+                <a>
+                  Add Your First Recipe
+                </a>
+              </Button>
+            </Link>
+          </div>
+        ) : filteredRecipes.length === 0 ? (
+          <div className="text-center p-8 bg-muted rounded-lg">
+            <Search className="w-16 h-16 mx-auto mb-4 text-primary" />
+            <p className="text-xl font-semibold mb-2">No recipes found matching your criteria</p>
+            <p className="text-muted-foreground mb-4">
+              Try adjusting your tags or search terms.
+            </p>
+            <Button onClick={resetFilters}>
+              Show All Recipes
             </Button>
-          </Link>
-        </div>
-      ) : filteredRecipes.length === 0 ? (
-        <div className="text-center p-8 bg-muted rounded-lg">
-          <Search className="w-16 h-16 mx-auto mb-4 text-primary" />
-          <p className="text-xl font-semibold mb-2">No recipes found matching your criteria</p>
-          <p className="text-muted-foreground mb-4">
-            Try adjusting your tags or search terms.
-          </p>
-          <Button onClick={resetFilters}>
-            Show All Recipes
-          </Button>
-        </div>
-      ) : (
-        <>
+          </div>
+        ) : (
           <div 
             {...swipeHandlers} 
-            className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr touch-pan-y"
+            className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr touch-pan-y mb-8"
           >
             {currentRecipes.map((recipe) => (
               <RecipeCard
@@ -243,15 +271,43 @@ export default function RecipeList() {
               />
             ))}
           </div>
+        )}
+      </div>
 
-          <div className="mt-8">
-            <PaginationControls
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={setCurrentPage}
-            />
+      {filteredRecipes.length > 0 && (
+        <div className="sticky bottom-0 bg-background py-4 border-t sm:static sm:bg-transparent sm:border-t-0">
+          <div className="flex justify-between items-center">
+            <div className="hidden sm:flex items-center space-x-2">
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Input
+                      type="number"
+                      min="1"
+                      value={tempRecipesPerPage}
+                      onChange={handleRecipesPerPageChange}
+                      className="w-20"
+                      aria-label="Recipes per page"
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Recipes per page</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+              <Button onClick={applyRecipesPerPage} size="sm">
+                Apply
+              </Button>
+            </div>
+            <div className="w-full sm:w-auto flex justify-end">
+              <PaginationControls
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
           </div>
-        </>
+        </div>
       )}
     </div>
   );
