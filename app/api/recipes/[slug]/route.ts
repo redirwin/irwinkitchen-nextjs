@@ -94,34 +94,11 @@ export async function PUT(
         .map(toTitleCase),
     };
 
-    let imageUrl = undefined;
+    let imageUrl = formData.get('imageUrl') as string | null;
     const removeImage = formData.get('removeImage') === 'true';
-    const imageFile = formData.get('image') as File | null;
 
     if (removeImage) {
-      // Get the current recipe to find the image URL
-      const currentRecipe = await prisma.recipe.findUnique({
-        where: { slug },
-        select: { imageUrl: true },
-      });
-
-      if (currentRecipe?.imageUrl) {
-        // Remove the file from the file system
-        const filePath = path.join(process.cwd(), 'public', currentRecipe.imageUrl);
-        await unlink(filePath);
-      }
-
-      // Set imageUrl to null in the database
       imageUrl = null;
-    } else if (imageFile) {
-      const bytes = await imageFile.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-
-      // Save the file to the public directory
-      const fileName = `recipe-${slug}-${Date.now()}.jpg`;
-      const filePath = path.join(process.cwd(), 'public', 'images', 'recipes', fileName);
-      await writeFile(filePath, buffer);
-      imageUrl = `/images/recipes/${fileName}`;
     }
 
     const recipe = await prisma.recipe.update({

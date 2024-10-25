@@ -40,7 +40,7 @@ yarn dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-## Project Structure
+## Project Structure 
 
 - `app/`: Next.js app router and page components
 - `components/`: Reusable React components

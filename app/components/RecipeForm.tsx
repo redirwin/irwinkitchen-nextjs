@@ -23,6 +23,7 @@ import {
 import { ChevronDown, ChevronUp } from "lucide-react"
 import { Recipe } from '@/types/Recipe';
 import { supabase } from '@/lib/supabaseClient'
+import { uploadImage } from '@/lib/imageUtils'
 
 interface RecipeFormProps {
   initialRecipe?: Recipe;
@@ -89,7 +90,8 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
         steps: initialRecipe.steps.map(step => 
           typeof step === 'string' ? step : step.content
         ),
-        image: null // Initialize image as null, we'll use imagePreview for display
+        image: null,
+        imageUrl: initialRecipe.imageUrl // Add this line
       };
     }
     return {
@@ -103,6 +105,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
       servingSize: '',
       tags: '',
       image: null as File | null,
+      imageUrl: null // Add this line
     };
   })
   const [imagePreview, setImagePreview] = useState<string | null>(initialRecipe?.imageUrl || null)
@@ -231,7 +234,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
             alert("Image dimensions are too large. Maximum size is 3000x3000 pixels.")
             return
           }
-          setRecipe(prev => ({ ...prev, image: file }))
+          setRecipe(prev => ({ ...prev, image: file, imageUrl: null }))
           setImagePreview(objectUrl)
           setHasExistingImage(true)
         }
@@ -241,15 +244,27 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
     }
   }
 
-  const handleRemoveImage = () => {
-    setRecipe(prev => ({ ...prev, image: null }));
+  const handleRemoveImage = async () => {
+    if (recipe.imageUrl) {
+      // Extract the file name from the URL
+      const fileName = recipe.imageUrl.split('/').pop();
+      if (fileName) {
+        const { error } = await supabase.storage
+          .from('recipe-images')
+          .remove([fileName]);
+        
+        if (error) {
+          console.error('Error deleting image from Supabase:', error);
+          // Handle the error (e.g., show a toast notification)
+        }
+      }
+    }
+    
+    setRecipe(prev => ({ ...prev, image: null, imageUrl: null }));
     setImagePreview(null);
     setHasExistingImage(false);
     setImageToRemove(true);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  }
+  };
 
   const validateForm = () => {
     if (!formRef.current) return false;
@@ -324,7 +339,14 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
     if (imageToRemove) {
       formData.append('removeImage', 'true');
     } else if (recipe.image) {
-      formData.append('image', recipe.image);
+      console.log('Uploading image...');
+      const imageUrl = await uploadImage(recipe.image);
+      console.log('Image upload result:', imageUrl);
+      if (imageUrl) {
+        formData.append('imageUrl', imageUrl);
+      } else {
+        console.error('Failed to upload image');
+      }
     }
 
     try {
@@ -372,6 +394,19 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
 
   const handleDelete = async () => {
     try {
+      if (recipe.imageUrl) {
+        const fileName = recipe.imageUrl.split('/').pop();
+        if (fileName) {
+          const { error: deleteError } = await supabase.storage
+            .from('recipe-images')
+            .remove([fileName]);
+
+          if (deleteError) {
+            console.error('Error deleting image from Supabase:', deleteError);
+          }
+        }
+      }
+
       const response = await fetch(`/api/recipes/${slug}`, {
         method: 'DELETE',
       });

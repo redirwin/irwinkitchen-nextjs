@@ -1,8 +1,8 @@
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/app/components/ui/card"
-import { Badge } from "@/app/components/ui/badge"
 import Image from 'next/image';
 import { Recipe } from '@/types/Recipe';
 import { toTitleCase } from "@/app/utils/stringUtils";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/app/components/ui/card";
+import { Badge } from "@/app/components/ui/badge";
 
 interface RecipeCardProps {
   recipe: Recipe;
@@ -13,28 +13,29 @@ interface RecipeCardProps {
 
 export function RecipeCard({ recipe, selectedTags, onTagClick, onClick }: RecipeCardProps) {
   return (
-    <div className="h-full cursor-pointer" onClick={onClick}>
-      <Card className="shadow-md hover:shadow-lg transition-all duration-300 ease-in-out hover:-translate-y-1 h-full flex flex-col">
-        <div className="relative w-full h-48 overflow-hidden">
+    <div 
+      className="cursor-pointer"
+      onClick={onClick}
+    >
+      <Card className="overflow-hidden">
+        <div className="relative h-48 w-full">
           {recipe.imageUrl ? (
             <Image
               src={recipe.imageUrl}
               alt={recipe.name}
-              fill
-              sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-              style={{ objectFit: 'cover' }}
-              priority={true}
+              layout="fill"
+              objectFit="cover"
             />
           ) : (
-            <div className="w-full h-full bg-gray-200 flex items-center justify-center">
-              <span className="text-gray-400">No image available</span>
+            <div className="bg-gray-200 h-full flex items-center justify-center">
+              <span className="text-gray-400">No Image</span>
             </div>
           )}
         </div>
-        <CardHeader className="flex-grow">
+        <CardHeader>
           <CardTitle className="line-clamp-2">{recipe.name}</CardTitle>
           {recipe.shortDescription && (
-            <CardDescription className="line-clamp-3 mt-2">
+            <CardDescription className="line-clamp-2">
               {recipe.shortDescription}
             </CardDescription>
           )}
