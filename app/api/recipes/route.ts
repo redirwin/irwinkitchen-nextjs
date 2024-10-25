@@ -38,6 +38,7 @@ export async function POST(request: Request) {
       .map(tag => tag.trim())
       .filter(Boolean)
       .map(toTitleCase);
+    const imageUrl = formData.get('imageUrl') as string | null;
 
     const recipe = await prisma.recipe.create({
       data: {
@@ -60,6 +61,7 @@ export async function POST(request: Request) {
             create: { name: tag },
           })),
         },
+        imageUrl: imageUrl,
       },
       include: { tags: true, ingredients: true, steps: true },
     });

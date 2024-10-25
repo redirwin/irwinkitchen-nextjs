@@ -31,7 +31,12 @@ export default function RecipeList() {
         const data = await response.json();
         // Sort recipes alphabetically by name
         const sortedRecipes = data.sort((a: Recipe, b: Recipe) => a.name.localeCompare(b.name));
-        setRecipes(sortedRecipes);
+        // Ensure all recipes have the required properties
+        const validRecipes = sortedRecipes.map((recipe: any) => ({
+          ...recipe,
+          imageUrl: recipe.imageUrl || null,
+        }));
+        setRecipes(validRecipes);
       } catch (error) {
         console.error('Error fetching recipes:', error);
       } finally {

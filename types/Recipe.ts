@@ -11,6 +11,6 @@ export interface Recipe {
   servingSize: string;
   tags: string;
   image?: File | null;
-  imageUrl?: string;
+  imageUrl?: string | null;
   updatedAt: Date;
 }
