@@ -275,7 +275,7 @@ export default function RecipeList() {
       </div>
 
       {filteredRecipes.length > 0 && (
-        <div className="sticky bottom-0 bg-background py-4 border-t sm:static sm:bg-transparent sm:border-t-0">
+        <div className="sticky bottom-0 bg-background py-4 sm:static sm:bg-transparent sm:py-0">
           <div className="flex justify-between items-center">
             <div className="hidden sm:flex items-center space-x-2">
               <TooltipProvider>
