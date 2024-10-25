@@ -90,7 +90,8 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
         steps: initialRecipe.steps.map(step => 
           typeof step === 'string' ? step : step.content
         ),
-        image: null // Initialize image as null, we'll use imagePreview for display
+        image: null,
+        imageUrl: initialRecipe.imageUrl // Add this line
       };
     }
     return {
@@ -104,6 +105,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
       servingSize: '',
       tags: '',
       image: null as File | null,
+      imageUrl: null // Add this line
     };
   })
   const [imagePreview, setImagePreview] = useState<string | null>(initialRecipe?.imageUrl || null)
