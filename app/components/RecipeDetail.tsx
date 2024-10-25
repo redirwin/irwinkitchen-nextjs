@@ -25,7 +25,7 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
   const [recipe, setRecipe] = useState(initialRecipe);
   const router = useRouter();
   const { isSignedIn } = useAuth();
-  
+
   useEffect(() => {
     const fetchUpdatedRecipe = async () => {
       try {
@@ -42,17 +42,17 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
   }, [initialRecipe.slug]);
 
   const handleEdit = () => {
-    // Save the current list state before navigating to edit
-    const listState = sessionStorage.getItem('recipeListState');
-    if (listState) {
-      sessionStorage.setItem('previousListState', listState);
-    }
     sessionStorage.setItem('editingRecipe', 'true');
+    sessionStorage.setItem('previousUrl', window.location.pathname);
     router.push(`/edit-recipe/${recipe.slug}`);
   };
 
   const handleBack = () => {
-    sessionStorage.setItem('returningFromDetail', 'true');
+    router.back();
+  };
+
+  const handleHome = () => {
+    sessionStorage.setItem('resetListState', 'true');
     router.push('/');
   };
 
@@ -107,18 +107,13 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
     `;
   };
 
-  const handleHome = () => {
-    // Navigate to the home page without preserving list state
-    router.push('/');
-  };
-
   return (
     <div className="max-w-3xl mx-auto">
       {recipe.imageUrl && (
         <div className="relative w-full h-64 mb-6">
-          <Image 
-            src={recipe.imageUrl} 
-            alt={recipe.name} 
+          <Image
+            src={recipe.imageUrl}
+            alt={recipe.name}
             layout="fill"
             objectFit="cover"
             className="rounded-lg"
@@ -180,7 +175,7 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
         {recipe.difficulty && <Badge>{recipe.difficulty}</Badge>}
         {recipe.servingSize && <Badge>Serves {recipe.servingSize}</Badge>}
       </div>
-      
+
       <div className="grid md:grid-cols-2 gap-6 mb-8">
         <Card>
           <CardHeader>
@@ -230,7 +225,7 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
           </CardContent>
         </Card>
       )}
-      
+
       {recipe.tags && (
         <div className="mb-4 flex items-center flex-wrap gap-2">
           <Tags className="h-5 w-5 text-gray-500" aria-label="Tags" />

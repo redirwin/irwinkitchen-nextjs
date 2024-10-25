@@ -18,8 +18,8 @@ export function RecipeCard({ recipe, selectedTags, onTagClick, onClick }: Recipe
       onClick={onClick}
     >
       <Card className="overflow-hidden flex flex-col h-full border border-neutral-200 hover:border-primary group">
-        <div className="relative h-48 w-full overflow-hidden">
-          {recipe.imageUrl ? (
+        {recipe.imageUrl ? (
+          <div className="relative h-48 w-full overflow-hidden">
             <Image
               src={recipe.imageUrl}
               alt={recipe.name}
@@ -27,12 +27,12 @@ export function RecipeCard({ recipe, selectedTags, onTagClick, onClick }: Recipe
               objectFit="cover"
               className="transition-transform duration-300 ease-in-out sm:group-hover:scale-110"
             />
-          ) : (
-            <div className="bg-gray-200 h-full flex items-center justify-center">
-              <span className="text-gray-400">No Image</span>
-            </div>
-          )}
-        </div>
+          </div>
+        ) : (
+          <div className="hidden sm:flex h-48 bg-gray-200 items-center justify-center">
+            <span className="text-gray-400 text-base">No Image</span>
+          </div>
+        )}
         <CardHeader>
           <CardTitle>{toTitleCase(recipe.name)}</CardTitle>
           {recipe.shortDescription && (

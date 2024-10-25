@@ -1,7 +1,7 @@
 "use client"
 
 import Link from "next/link"
-import { usePathname } from "next/navigation"
+import { usePathname, useRouter } from "next/navigation"
 import { SignInButton, UserButton, useAuth } from "@clerk/nextjs"
 import { cn } from "@/app/utils/cn"
 import { Home, Plus, UserCircle, Soup } from "lucide-react"
@@ -20,6 +20,7 @@ interface HeaderProps {
 export const Header: FC<HeaderProps> = ({ className = '' }) => {
   const pathname = usePathname()
   const { isLoaded, isSignedIn } = useAuth();
+  const router = useRouter();
 
   const iconClass = "h-5 w-5 text-white";
   const linkClass = "flex items-center justify-center";
@@ -27,25 +28,25 @@ export const Header: FC<HeaderProps> = ({ className = '' }) => {
   return (
     <header className={`bg-navy-blue text-white border-b ${className}`}>
       <div className="container mx-auto max-w-4xl flex h-16 items-center justify-between px-4 sm:px-8">
-        <Link href="/" className="text-lg font-semibold flex items-center relative">
+        <button onClick={() => {
+          sessionStorage.setItem('resetListState', 'true');
+          window.dispatchEvent(new Event('resetListState'));
+          router.push('/');
+        }} className="text-lg font-semibold flex items-center relative">
           <Soup className="h-6 w-6 mr-2 transform scale-x-[-1] sm:relative sm:transform-none sm:bottom-[0.18em]" />
           <span className="pl-0 sm:pl-0 mr-2 sm:mr-0 leading-none ">Irwin Family<wbr /> Recipe Book</span>
-        </Link>
+        </button>
         <div className="flex items-center space-x-6">
           <nav className="flex items-center space-x-6 text-sm font-medium">
-            <Link href="/" className={cn(linkClass, "transition-colors hover:text-blue-200", pathname === "/" ? "text-blue-200" : "text-white")}>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Home className={iconClass} />
-                    <span className="sr-only">Home</span>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Home</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-            </Link>
+            <button 
+              onClick={() => {
+                sessionStorage.setItem('resetListState', 'true');
+                window.dispatchEvent(new Event('resetListState'));
+                router.push('/');
+              }}
+            >
+              <Home className={iconClass} />
+            </button>
             {isSignedIn && (
               <Link href="/add-recipe" className={cn(linkClass, "transition-colors hover:text-blue-200", pathname === "/add-recipe" ? "text-blue-200" : "text-white")}>
                 <TooltipProvider>

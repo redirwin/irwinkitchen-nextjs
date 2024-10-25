@@ -45,34 +45,38 @@ export default function RecipeList() {
         setIsLoading(false);
       }
     };
+  
+    const handleResetState = () => {
+      setCurrentPage(1);
+      setSelectedTags([]);
+      setSearchQuery('');
+    };
+  
     fetchRecipes();
-
-    const isReturningFromDetail = sessionStorage.getItem('returningFromDetail');
-    if (isReturningFromDetail) {
-      const savedState = sessionStorage.getItem('recipeListState');
-      if (savedState) {
-        const { currentPage, selectedTags, searchQuery } = JSON.parse(savedState);
-        setCurrentPage(currentPage);
-        setSelectedTags(selectedTags);
-        setSearchQuery(searchQuery);
+  
+    const resetStateHandler = () => {
+      const resetListState = sessionStorage.getItem('resetListState');
+      if (resetListState) {
+        handleResetState();
+        sessionStorage.removeItem('resetListState');
       }
-      sessionStorage.removeItem('returningFromDetail');
+    };
+  
+    window.addEventListener('resetListState', resetStateHandler);
+
+    // Load saved state if it exists
+    const savedState = sessionStorage.getItem('recipeListState');
+    if (savedState) {
+      const { currentPage, selectedTags, searchQuery } = JSON.parse(savedState);
+      setCurrentPage(currentPage);
+      setSelectedTags(selectedTags);
+      setSearchQuery(searchQuery);
       sessionStorage.removeItem('recipeListState');
     }
-  }, []);
-
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const pageParam = urlParams.get('page');
-    const tagsParam = urlParams.get('tags');
-    const searchParam = urlParams.get('search');
-
-    if (pageParam) setCurrentPage(parseInt(pageParam, 10));
-    if (tagsParam) setSelectedTags(tagsParam.split(','));
-    if (searchParam) setSearchQuery(searchParam);
-
-    // Clear the saved state after using it
-    sessionStorage.removeItem('recipeListState');
+  
+    return () => {
+      window.removeEventListener('resetListState', resetStateHandler);
+    };
   }, []);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {

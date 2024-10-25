@@ -386,8 +386,10 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
   };
 
   const handleCancel = () => {
-    if (slug) {
-      router.push(`/recipes/${slug}`);
+    const previousUrl = sessionStorage.getItem('previousUrl');
+    if (previousUrl) {
+      router.push(previousUrl);
+      sessionStorage.removeItem('previousUrl');
     } else {
       router.push('/');
     }
