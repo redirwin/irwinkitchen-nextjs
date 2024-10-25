@@ -234,7 +234,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
             alert("Image dimensions are too large. Maximum size is 3000x3000 pixels.")
             return
           }
-          setRecipe(prev => ({ ...prev, image: file }))
+          setRecipe(prev => ({ ...prev, image: file, imageUrl: null }))
           setImagePreview(objectUrl)
           setHasExistingImage(true)
         }
