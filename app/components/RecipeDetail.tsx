@@ -42,13 +42,18 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
   }, [initialRecipe.slug]);
 
   const handleEdit = () => {
+    // Save the current list state before navigating to edit
+    const listState = sessionStorage.getItem('recipeListState');
+    if (listState) {
+      sessionStorage.setItem('previousListState', listState);
+    }
+    sessionStorage.setItem('editingRecipe', 'true');
     router.push(`/edit-recipe/${recipe.slug}`);
   };
 
   const handleBack = () => {
-    // Set a flag to indicate we're returning from the detail page
     sessionStorage.setItem('returningFromDetail', 'true');
-    router.back();
+    router.push('/');
   };
 
   const handlePrint = () => {
@@ -108,7 +113,7 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <div className="max-w-3xl mx-auto">
       {recipe.imageUrl && (
         <div className="relative w-full h-64 mb-6">
           <Image 
@@ -121,7 +126,7 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
         </div>
       )}
       <div className="flex flex-wrap items-start justify-between mb-6">
-        <h1 className="text-3xl font-bold mr-4 mb-4 xs:mb-0">{recipe.name}</h1>
+        <h1 className="text-3xl font-bold mr-4 mb-4 xs:mb-0">{toTitleCase(recipe.name)}</h1>
         <TooltipProvider>
           <div className="flex flex-wrap xs:flex-nowrap space-x-2">
             {isSignedIn && (

@@ -16,7 +16,7 @@ export default function AddRecipe() {
   };
 
   return (
-    <div className="container mx-auto px-4">
+    <div className="container mx-auto">
       <SignedIn>
         <RecipeForm isEditing={false} />
       </SignedIn>

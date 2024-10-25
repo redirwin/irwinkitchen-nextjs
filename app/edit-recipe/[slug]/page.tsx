@@ -53,7 +53,7 @@ export default function EditRecipePage({ params }: { params: { slug: string } })
   }
 
   return (
-    <div className="container mx-auto px-4">
+    <div className="container mx-auto">
       <RecipeForm initialRecipe={recipe} slug={params.slug} isEditing={true} />
     </div>
   );

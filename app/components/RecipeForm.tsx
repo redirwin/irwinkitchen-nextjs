@@ -24,6 +24,7 @@ import { ChevronDown, ChevronUp } from "lucide-react"
 import { Recipe } from '@/types/Recipe';
 import { supabase } from '@/lib/supabaseClient'
 import { uploadImage } from '@/lib/imageUtils'
+import { toTitleCase } from "@/app/utils/stringUtils"
 
 interface RecipeFormProps {
   initialRecipe?: Recipe;
@@ -134,7 +135,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
   });
   const formRef = useRef<HTMLFormElement>(null);
   const headingText = isEditing && initialRecipe
-    ? `Editing ${initialRecipe.name}`
+    ? `Editing ${toTitleCase(initialRecipe.name)}`
     : "Adding a New Recipe";
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -434,6 +435,11 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
     }
   };
 
+  const handleBack = () => {
+    sessionStorage.setItem('returningFromDetail', 'true');
+    router.push('/');
+  };
+
   useEffect(() => {
     if (error) {
       const timer = setTimeout(() => {
@@ -519,7 +525,7 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
   }
 
   return (
-    <form onSubmit={handleSubmit} ref={formRef} className="space-y-8 max-w-2xl mx-auto px-4 sm:px-0">
+    <form onSubmit={handleSubmit} ref={formRef} className="space-y-8 max-w-2xl mx-auto">
       <div className="mb-8">
         <h1 className="text-3xl font-semibold flex items-center space-x-2 pb-2 border-b border-gray-200">
           <span>{headingText}</span>
@@ -847,3 +853,4 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
     </form>
   )
 }
+
