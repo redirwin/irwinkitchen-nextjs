@@ -29,8 +29,9 @@ import { toTitleCase } from "@/app/utils/stringUtils"
 interface RecipeFormProps {
   initialRecipe?: Recipe;
   slug?: string;
-  onUpdate?: (updatedRecipe: Recipe) => void;
   isEditing?: boolean;
+  onSave: (recipe: Recipe) => void;
+  onCancel: () => void;
 }
 
 // Add this new component at the top of the file, outside the RecipeForm component
@@ -75,7 +76,7 @@ function CollapsibleCard({
   );
 }
 
-export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }: RecipeFormProps) {
+export function RecipeForm({ initialRecipe, slug, isEditing, onSave, onCancel }: RecipeFormProps) {
   const router = useRouter()
   const { recipes, addRecipe, updateRecipe } = useRecipes()
   const { toast } = useToast()
@@ -370,8 +371,8 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
         description: "Your recipe has been saved successfully.",
       });
 
-      if (initialRecipe && onUpdate) {
-        onUpdate(savedRecipe);
+      if (initialRecipe && onSave) {
+        onSave(savedRecipe);
       }
       
       router.push(`/recipes/${savedRecipe.slug}`);
@@ -855,4 +856,3 @@ export function RecipeForm({ initialRecipe, slug, onUpdate, isEditing = false }:
     </form>
   )
 }
-

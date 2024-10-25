@@ -42,13 +42,17 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
   }, [initialRecipe.slug]);
 
   const handleEdit = () => {
-    sessionStorage.setItem('editingRecipe', 'true');
-    sessionStorage.setItem('previousUrl', window.location.pathname);
     router.push(`/edit-recipe/${recipe.slug}`);
   };
 
   const handleBack = () => {
-    router.back();
+    const preserveListState = sessionStorage.getItem('preserveListState');
+    if (preserveListState) {
+      sessionStorage.removeItem('preserveListState');
+      router.push('/');
+    } else {
+      router.back();
+    }
   };
 
   const handleHome = () => {

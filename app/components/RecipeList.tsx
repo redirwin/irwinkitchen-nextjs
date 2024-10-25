@@ -64,16 +64,19 @@ export default function RecipeList() {
   
     window.addEventListener('resetListState', resetStateHandler);
 
-    // Load saved state if it exists
-    const savedState = sessionStorage.getItem('recipeListState');
-    if (savedState) {
-      const { currentPage, selectedTags, searchQuery } = JSON.parse(savedState);
-      setCurrentPage(currentPage);
-      setSelectedTags(selectedTags);
-      setSearchQuery(searchQuery);
-      sessionStorage.removeItem('recipeListState');
-    }
-  
+    const loadSavedState = () => {
+      const savedState = sessionStorage.getItem('recipeListState');
+      if (savedState) {
+        const { currentPage, selectedTags, searchQuery } = JSON.parse(savedState);
+        setCurrentPage(currentPage);
+        setSelectedTags(selectedTags);
+        setSearchQuery(searchQuery);
+        sessionStorage.removeItem('recipeListState');
+      }
+    };
+
+    loadSavedState();
+
     return () => {
       window.removeEventListener('resetListState', resetStateHandler);
     };
