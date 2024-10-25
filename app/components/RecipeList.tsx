@@ -11,6 +11,7 @@ import { SearchBar } from './SearchBar';
 import { TagList } from './TagList';
 import { RecipeCard } from './RecipeCard';
 import { PaginationControls } from './PaginationControls';
+import { useSwipeable } from 'react-swipeable';
 
 export default function RecipeList() {
   const { recipes, setRecipes } = useRecipes();
@@ -20,7 +21,10 @@ export default function RecipeList() {
   const [searchQuery, setSearchQuery] = useState('');
   const router = useRouter();
   const searchParams = useSearchParams();
-  const recipesPerPage = 6;
+  const recipesPerPage = {
+    mobile: 1,
+    desktop: 6
+  };
 
   useEffect(() => {
     const fetchRecipes = async () => {
@@ -29,9 +33,7 @@ export default function RecipeList() {
         const response = await fetch('/api/recipes');
         if (!response.ok) throw new Error('Failed to fetch recipes');
         const data = await response.json();
-        // Sort recipes alphabetically by name
         const sortedRecipes = data.sort((a: Recipe, b: Recipe) => a.name.localeCompare(b.name));
-        // Ensure all recipes have the required properties
         const validRecipes = sortedRecipes.map((recipe: any) => ({
           ...recipe,
           imageUrl: recipe.imageUrl || null,
@@ -43,22 +45,41 @@ export default function RecipeList() {
         setIsLoading(false);
       }
     };
+  
+    const handleResetState = () => {
+      setCurrentPage(1);
+      setSelectedTags([]);
+      setSearchQuery('');
+    };
+  
     fetchRecipes();
+  
+    const resetStateHandler = () => {
+      const resetListState = sessionStorage.getItem('resetListState');
+      if (resetListState) {
+        handleResetState();
+        sessionStorage.removeItem('resetListState');
+      }
+    };
+  
+    window.addEventListener('resetListState', resetStateHandler);
 
-    // Check if we're coming back from a recipe detail page
-    const isReturningFromDetail = sessionStorage.getItem('returningFromDetail');
-    if (isReturningFromDetail) {
+    const loadSavedState = () => {
       const savedState = sessionStorage.getItem('recipeListState');
       if (savedState) {
         const { currentPage, selectedTags, searchQuery } = JSON.parse(savedState);
         setCurrentPage(currentPage);
         setSelectedTags(selectedTags);
         setSearchQuery(searchQuery);
+        sessionStorage.removeItem('recipeListState');
       }
-      // Clear the flags and saved state
-      sessionStorage.removeItem('returningFromDetail');
-      sessionStorage.removeItem('recipeListState');
-    }
+    };
+
+    loadSavedState();
+
+    return () => {
+      window.removeEventListener('resetListState', resetStateHandler);
+    };
   }, []);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,6 +101,7 @@ export default function RecipeList() {
       searchQuery
     };
     sessionStorage.setItem('recipeListState', JSON.stringify(state));
+    sessionStorage.setItem('returningFromDetail', 'true');
     router.push(`/recipes/${slug}`);
   };
 
@@ -110,11 +132,13 @@ export default function RecipeList() {
     )) && (searchQuery === '' || searchRecipe(recipe, searchQuery))
   );
 
-  // Calculate pagination
-  const indexOfLastRecipe = currentPage * recipesPerPage;
-  const indexOfFirstRecipe = indexOfLastRecipe - recipesPerPage;
+  // Update pagination calculation
+  const isMobile = typeof window !== 'undefined' && window.innerWidth < 640;
+  const currentRecipesPerPage = isMobile ? recipesPerPage.mobile : recipesPerPage.desktop;
+  const indexOfLastRecipe = currentPage * currentRecipesPerPage;
+  const indexOfFirstRecipe = indexOfLastRecipe - currentRecipesPerPage;
   const currentRecipes = filteredRecipes.slice(indexOfFirstRecipe, indexOfLastRecipe);
-  const totalPages = Math.ceil(filteredRecipes.length / recipesPerPage);
+  const totalPages = Math.ceil(filteredRecipes.length / currentRecipesPerPage);
 
   const resetTags = () => {
     setSelectedTags([]);
@@ -138,19 +162,19 @@ export default function RecipeList() {
     setCurrentPage(1);
   };
 
-  useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const pageParam = urlParams.get('page');
-    const tagsParam = urlParams.get('tags');
-    const searchParam = urlParams.get('search');
+  const handleSwipe = (direction: 'LEFT' | 'RIGHT') => {
+    if (direction === 'LEFT' && currentPage < totalPages) {
+      setCurrentPage(prev => prev + 1);
+    } else if (direction === 'RIGHT' && currentPage > 1) {
+      setCurrentPage(prev => prev - 1);
+    }
+  };
 
-    if (pageParam) setCurrentPage(parseInt(pageParam, 10));
-    if (tagsParam) setSelectedTags(tagsParam.split(','));
-    if (searchParam) setSearchQuery(searchParam);
-
-    // Clear the saved state after using it
-    sessionStorage.removeItem('recipeListState');
-  }, []);
+  const swipeHandlers = useSwipeable({
+    onSwipedLeft: () => handleSwipe('LEFT'),
+    onSwipedRight: () => handleSwipe('RIGHT'),
+    trackMouse: true
+  });
 
   if (isLoading) {
     return (
@@ -162,7 +186,7 @@ export default function RecipeList() {
   }
 
   return (
-    <div className="px-4 sm:px-6 md:px-8 max-w-7xl mx-auto">
+    <div className="max-w-7xl mx-auto">
       <div className="mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
           <h1 className="text-2xl sm:text-3xl md:text-4xl font-bold">Browse & Search Recipes</h1>
@@ -205,7 +229,10 @@ export default function RecipeList() {
         </div>
       ) : (
         <>
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div 
+            {...swipeHandlers} 
+            className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 auto-rows-fr touch-pan-y"
+          >
             {currentRecipes.map((recipe) => (
               <RecipeCard
                 key={recipe.id}
@@ -217,15 +244,13 @@ export default function RecipeList() {
             ))}
           </div>
 
-          {filteredRecipes.length > recipesPerPage && (
-            <div className="mt-8">
-              <PaginationControls
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={setCurrentPage}
-              />
-            </div>
-          )}
+          <div className="mt-8">
+            <PaginationControls
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={setCurrentPage}
+            />
+          </div>
         </>
       )}
     </div>

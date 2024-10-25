@@ -25,7 +25,7 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
   const [recipe, setRecipe] = useState(initialRecipe);
   const router = useRouter();
   const { isSignedIn } = useAuth();
-  
+
   useEffect(() => {
     const fetchUpdatedRecipe = async () => {
       try {
@@ -46,9 +46,18 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
   };
 
   const handleBack = () => {
-    // Set a flag to indicate we're returning from the detail page
-    sessionStorage.setItem('returningFromDetail', 'true');
-    router.back();
+    const preserveListState = sessionStorage.getItem('preserveListState');
+    if (preserveListState) {
+      sessionStorage.removeItem('preserveListState');
+      router.push('/');
+    } else {
+      router.back();
+    }
+  };
+
+  const handleHome = () => {
+    sessionStorage.setItem('resetListState', 'true');
+    router.push('/');
   };
 
   const handlePrint = () => {
@@ -102,18 +111,13 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
     `;
   };
 
-  const handleHome = () => {
-    // Navigate to the home page without preserving list state
-    router.push('/');
-  };
-
   return (
-    <div className="max-w-3xl mx-auto p-6">
+    <div className="max-w-3xl mx-auto">
       {recipe.imageUrl && (
         <div className="relative w-full h-64 mb-6">
-          <Image 
-            src={recipe.imageUrl} 
-            alt={recipe.name} 
+          <Image
+            src={recipe.imageUrl}
+            alt={recipe.name}
             layout="fill"
             objectFit="cover"
             className="rounded-lg"
@@ -121,7 +125,7 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
         </div>
       )}
       <div className="flex flex-wrap items-start justify-between mb-6">
-        <h1 className="text-3xl font-bold mr-4 mb-4 xs:mb-0">{recipe.name}</h1>
+        <h1 className="text-3xl font-bold mr-4 mb-4 xs:mb-0">{toTitleCase(recipe.name)}</h1>
         <TooltipProvider>
           <div className="flex flex-wrap xs:flex-nowrap space-x-2">
             {isSignedIn && (
@@ -175,7 +179,7 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
         {recipe.difficulty && <Badge>{recipe.difficulty}</Badge>}
         {recipe.servingSize && <Badge>Serves {recipe.servingSize}</Badge>}
       </div>
-      
+
       <div className="grid md:grid-cols-2 gap-6 mb-8">
         <Card>
           <CardHeader>
@@ -225,7 +229,7 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
           </CardContent>
         </Card>
       )}
-      
+
       {recipe.tags && (
         <div className="mb-4 flex items-center flex-wrap gap-2">
           <Tags className="h-5 w-5 text-gray-500" aria-label="Tags" />
