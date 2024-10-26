@@ -38,15 +38,25 @@ export const Header: FC<HeaderProps> = ({ className = '' }) => {
         </button>
         <div className="flex items-center space-x-6">
           <nav className="flex items-center space-x-6 text-sm font-medium">
-            <button 
-              onClick={() => {
-                sessionStorage.setItem('resetListState', 'true');
-                window.dispatchEvent(new Event('resetListState'));
-                router.push('/');
-              }}
-            >
-              <Home className={iconClass} />
-            </button>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button 
+                    onClick={() => {
+                      sessionStorage.setItem('resetListState', 'true');
+                      window.dispatchEvent(new Event('resetListState'));
+                      router.push('/');
+                    }}
+                  >
+                    <Home className={iconClass} />
+                    <span className="sr-only">Home</span>
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Home</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
             {isSignedIn && (
               <Link href="/add-recipe" className={cn(linkClass, "transition-colors hover:text-blue-200", pathname === "/add-recipe" ? "text-blue-200" : "text-white")}>
                 <TooltipProvider>

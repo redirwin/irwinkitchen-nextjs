@@ -8,31 +8,52 @@ interface PaginationControlsProps {
 }
 
 export function PaginationControls({ currentPage, totalPages, onPageChange }: PaginationControlsProps) {
-  const maxVisiblePages = 5;
-
   const getPageNumbers = () => {
-    if (totalPages <= maxVisiblePages) {
-      return Array.from({ length: totalPages }, (_, i) => i + 1);
+    const pageNumbers = [];
+    const totalButtons = 7; // Total number of buttons to show (including ellipsis)
+
+    if (totalPages <= totalButtons) {
+      // If total pages are less than or equal to total buttons, show all pages
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i);
+      }
+    } else {
+      // Always add first page
+      pageNumbers.push(1);
+
+      if (currentPage <= 3) {
+        // If current page is near the start
+        for (let i = 2; i <= 5; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push('ellipsis');
+      } else if (currentPage >= totalPages - 2) {
+        // If current page is near the end
+        pageNumbers.push('ellipsis');
+        for (let i = totalPages - 4; i < totalPages; i++) {
+          pageNumbers.push(i);
+        }
+      } else {
+        // Current page is in the middle
+        pageNumbers.push('ellipsis');
+        for (let i = currentPage - 1; i <= currentPage + 1; i++) {
+          pageNumbers.push(i);
+        }
+        pageNumbers.push('ellipsis');
+      }
+
+      // Always add last page
+      pageNumbers.push(totalPages);
     }
 
-    const leftSiblingIndex = Math.max(currentPage - 1, 1);
-    const rightSiblingIndex = Math.min(currentPage + 1, totalPages);
+    return pageNumbers;
+  };
 
-    const shouldShowLeftDots = leftSiblingIndex > 2;
-    const shouldShowRightDots = rightSiblingIndex < totalPages - 2;
-
-    if (!shouldShowLeftDots && shouldShowRightDots) {
-      const leftItemCount = 3;
-      return [...Array.from({ length: leftItemCount }, (_, i) => i + 1), "...", totalPages];
-    }
-
-    if (shouldShowLeftDots && !shouldShowRightDots) {
-      const rightItemCount = 3;
-      return [1, "...", ...Array.from({ length: rightItemCount }, (_, i) => totalPages - rightItemCount + i + 1)];
-    }
-
-    if (shouldShowLeftDots && shouldShowRightDots) {
-      return [1, "...", currentPage - 1, currentPage, currentPage + 1, "...", totalPages];
+  const handleNextPage = () => {
+    if (currentPage === totalPages) {
+      onPageChange(1); // Go to first page if we're on the last page
+    } else {
+      onPageChange(currentPage + 1);
     }
   };
 
@@ -41,18 +62,17 @@ export function PaginationControls({ currentPage, totalPages, onPageChange }: Pa
       <Button
         variant="outline"
         size="icon"
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
+        onClick={() => onPageChange(currentPage === 1 ? totalPages : currentPage - 1)}
+        aria-label="Previous page"
       >
         <ChevronLeft className="h-4 w-4" />
-        <span className="sr-only">Previous page</span>
       </Button>
       <div className="hidden sm:flex items-center space-x-2">
-        {getPageNumbers()?.map((pageNumber, index) => (
-          pageNumber === "..." ? (
-            <span key={`ellipsis-${index}`} className="px-2">
+        {getPageNumbers().map((pageNumber, index) => (
+          pageNumber === 'ellipsis' ? (
+            <Button key={`ellipsis-${index}`} variant="outline" size="icon" disabled>
               <MoreHorizontal className="h-4 w-4" />
-            </span>
+            </Button>
           ) : (
             <Button
               key={pageNumber}
@@ -73,11 +93,10 @@ export function PaginationControls({ currentPage, totalPages, onPageChange }: Pa
       <Button
         variant="outline"
         size="icon"
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
+        onClick={handleNextPage}
+        aria-label="Next page"
       >
         <ChevronRight className="h-4 w-4" />
-        <span className="sr-only">Next page</span>
       </Button>
     </nav>
   );
