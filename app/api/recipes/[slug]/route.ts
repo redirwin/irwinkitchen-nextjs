@@ -99,6 +99,13 @@ export async function PUT(
 
     if (removeImage) {
       imageUrl = null;
+    } else if (!imageUrl) {
+      // If no new imageUrl is provided and removeImage is false, keep the existing one
+      const existingRecipe = await prisma.recipe.findUnique({
+        where: { slug },
+        select: { imageUrl: true }
+      });
+      imageUrl = existingRecipe?.imageUrl || null;
     }
 
     const recipe = await prisma.recipe.update({

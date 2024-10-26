@@ -333,7 +333,7 @@ export function RecipeForm({ initialRecipe, slug, isEditing, onSave, onCancel }:
       return;
     }
 
-    setIsSaving(true);  // Set loading state to true
+    setIsSaving(true);
 
     const formData = new FormData(formRef.current);
 
@@ -345,6 +345,7 @@ export function RecipeForm({ initialRecipe, slug, isEditing, onSave, onCancel }:
       order: index + 1,
       content: step
     }))))
+    
     // Format tags
     formData.set('tags', recipe.tags);
 
@@ -359,6 +360,9 @@ export function RecipeForm({ initialRecipe, slug, isEditing, onSave, onCancel }:
       } else {
         console.error('Failed to upload image');
       }
+    } else if (recipe.imageUrl) {
+      // Add this condition to keep the existing image URL
+      formData.append('imageUrl', recipe.imageUrl);
     }
 
     try {

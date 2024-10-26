@@ -1,4 +1,4 @@
-# Family Recipe Book
+# Family Recipe Book 
 
 This is a personal recipe application tailored for family use, built with [Next.js](https://nextjs.org).
 
