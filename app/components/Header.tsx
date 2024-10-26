@@ -11,7 +11,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/app/components/ui/tooltip"
-import { FC } from 'react';
+import { FC, useCallback } from 'react';
 
 interface HeaderProps {
   className?: string;
@@ -25,14 +25,20 @@ export const Header: FC<HeaderProps> = ({ className = '' }) => {
   const iconClass = "h-5 w-5 text-white";
   const linkClass = "flex items-center justify-center";
 
+  const handleHomeClick = useCallback(() => {
+    console.log('Home button clicked, resetting list state');
+    sessionStorage.setItem('resetListState', 'true');
+    sessionStorage.removeItem('preserveListState');
+    // Clear any other potentially interfering states
+    sessionStorage.removeItem('recipeListState');
+    window.dispatchEvent(new Event('resetListState'));
+    router.push('/');
+  }, [router]);
+
   return (
     <header className={`bg-navy-blue text-white border-b sticky top-0 left-0 right-0 z-40 ${className}`}>
       <div className="container mx-auto max-w-4xl flex h-16 items-center justify-between px-4 sm:px-8">
-        <button onClick={() => {
-          sessionStorage.setItem('resetListState', 'true');
-          window.dispatchEvent(new Event('resetListState'));
-          router.push('/');
-        }} className="text-lg font-semibold flex items-center relative">
+        <button onClick={handleHomeClick} className="text-lg font-semibold flex items-center relative">
           <Soup className="h-6 w-6 mr-2 transform scale-x-[-1] sm:relative sm:transform-none sm:bottom-[0.18em]" />
           <span className="pl-0 sm:pl-0 mr-2 sm:mr-0 leading-none ">Irwin Family<wbr /> Recipe Book</span>
         </button>
@@ -42,11 +48,7 @@ export const Header: FC<HeaderProps> = ({ className = '' }) => {
               <Tooltip>
                 <TooltipTrigger asChild>
                   <button 
-                    onClick={() => {
-                      sessionStorage.setItem('resetListState', 'true');
-                      window.dispatchEvent(new Event('resetListState'));
-                      router.push('/');
-                    }}
+                    onClick={handleHomeClick}
                   >
                     <Home className={iconClass} />
                     <span className="sr-only">Home</span>
