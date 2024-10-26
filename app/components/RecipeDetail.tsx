@@ -135,7 +135,7 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
         </div>
       )}
 
-      <div className={`sticky top-16 z-40 bg-white -mx-4 px-4 transition-shadow duration-200
+      <div className={`sticky top-16 z-50 bg-white -mx-4 px-4 transition-shadow duration-200
         ${isScrolled ? 'py-2 shadow-md' : 'pt-0 pb-3'}
         md:static md:bg-transparent md:shadow-none md:px-0 md:mx-0 md:py-0`}>
         <TooltipProvider>
@@ -147,7 +147,7 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
                     <Pencil className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent>
+                <TooltipContent side="bottom" align="center" sideOffset={5}>
                   <p>Edit Recipe</p>
                 </TooltipContent>
               </Tooltip>
@@ -158,7 +158,7 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
                   <Printer className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent side="bottom" align="center" sideOffset={5}>
                 <p>Print Recipe</p>
               </TooltipContent>
             </Tooltip>
@@ -168,7 +168,7 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
                   <Home className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent side="bottom" align="center" sideOffset={5}>
                 <p>Go to Home</p>
               </TooltipContent>
             </Tooltip>
@@ -178,7 +178,7 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>
+              <TooltipContent side="bottom" align="center" sideOffset={5}>
                 <p>Go Back</p>
               </TooltipContent>
             </Tooltip>
