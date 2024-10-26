@@ -75,6 +75,38 @@ function CollapsibleCard({
   );
 }
 
+const convertToWebP = (file: File): Promise<File> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const img = document.createElement('img');
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) {
+          reject(new Error('Failed to get canvas context'));
+          return;
+        }
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            const fileName = `${file.name.split('.')[0]}.webp`;
+            resolve(new File([blob], fileName, { type: 'image/webp' }));
+          } else {
+            reject(new Error('Failed to convert image to WebP'));
+          }
+        }, 'image/webp', 0.8); // 0.8 is the quality, adjust as needed
+      };
+      img.onerror = () => reject(new Error('Failed to load image'));
+      img.src = event.target?.result as string;
+    };
+    reader.onerror = (error) => reject(error);
+    reader.readAsDataURL(file);
+  });
+};
+
 export function RecipeForm({ initialRecipe, slug, isEditing, onSave, onCancel }: RecipeFormProps) {
   const router = useRouter()
   const { recipes, addRecipe, updateRecipe } = useRecipes()
@@ -207,7 +239,7 @@ export function RecipeForm({ initialRecipe, slug, isEditing, onSave, onCancel }:
     })
   }
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (file) {
       // Check file size
@@ -223,26 +255,36 @@ export function RecipeForm({ initialRecipe, slug, isEditing, onSave, onCancel }:
         return
       }
 
-      // Create a URL for the file
-      const objectUrl = URL.createObjectURL(file)
+      try {
+        // Convert image to WebP if it's not already WebP
+        const webpFile = file.type === 'image/webp' ? file : await convertToWebP(file);
 
-      // Use FileReader to check image dimensions
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        const img = document.createElement('img')
-        img.onload = () => {
-          if (img.width > 3000 || img.height > 3000) {
-            URL.revokeObjectURL(objectUrl)
-            alert("Image dimensions are too large. Maximum size is 3000x3000 pixels.")
-            return
+        // Create a URL for the file
+        const objectUrl = URL.createObjectURL(webpFile)
+
+        // Use FileReader to check image dimensions
+        const reader = new FileReader()
+        reader.onload = (event) => {
+          const img = document.createElement('img')
+          img.onload = () => {
+            if (img.width > 3000 || img.height > 3000) {
+              URL.revokeObjectURL(objectUrl)
+              alert("Image dimensions are too large. Maximum size is 3000x3000 pixels.")
+              return
+            }
+            setRecipe(prev => {
+              return { ...prev, image: webpFile, imageUrl: null };
+            })
+            setImagePreview(objectUrl)
+            setHasExistingImage(true)
           }
-          setRecipe(prev => ({ ...prev, image: file, imageUrl: null }))
-          setImagePreview(objectUrl)
-          setHasExistingImage(true)
+          img.src = event.target?.result as string
         }
-        img.src = event.target?.result as string
+        reader.readAsDataURL(webpFile)
+      } catch (error) {
+        console.error('Error processing image:', error);
+        alert("Error processing image. Please try again.");
       }
-      reader.readAsDataURL(file)
     }
   }
 
@@ -352,9 +394,7 @@ export function RecipeForm({ initialRecipe, slug, isEditing, onSave, onCancel }:
     if (imageToRemove) {
       formData.append('removeImage', 'true');
     } else if (recipe.image) {
-      console.log('Uploading image...');
       const imageUrl = await uploadImage(recipe.image);
-      console.log('Image upload result:', imageUrl);
       if (imageUrl) {
         formData.append('imageUrl', imageUrl);
       } else {

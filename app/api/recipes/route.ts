@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma'
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 import slugify from 'slugify';
 import { toTitleCase } from "@/app/utils/stringUtils";
+import { uploadImage } from '@/lib/imageUtils'
 
 export async function GET(request: Request) {
   try {
@@ -24,6 +25,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
+
     const name = formData.get('name') as string;
     const slug = slugify(name, { lower: true });
     const shortDescription = formData.get('shortDescription') as string;
@@ -38,7 +40,12 @@ export async function POST(request: Request) {
       .map(tag => tag.trim())
       .filter(Boolean)
       .map(toTitleCase);
-    const imageUrl = formData.get('imageUrl') as string | null;
+    const imageFile = formData.get('image') as File | null;
+
+    let imageUrl = null;
+    if (imageFile) {
+      imageUrl = await uploadImage(imageFile);
+    }
 
     const recipe = await prisma.recipe.create({
       data: {
@@ -68,19 +75,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json(recipe);
   } catch (error) {
-    console.error('Error creating recipe:', error);
-    if (error instanceof PrismaClientKnownRequestError && error.code === 'P2002') {
-      return NextResponse.json({ 
-        error: 'A recipe with this name already exists',
-        title: 'Duplicate Recipe Name',
-        description: 'Please choose a different name for your recipe.'
-      }, { status: 400 });
-    }
-    return NextResponse.json({ 
-      error: 'Error creating recipe',
-      title: 'Creation Failed',
-      description: 'An unexpected error occurred while creating the recipe. Please try again.',
-      details: error instanceof Error ? error.message : String(error)
-    }, { status: 500 });
+    console.error('Error in POST /api/recipes:', error);
+    return NextResponse.json({ error: 'Failed to create recipe' }, { status: 500 });
   }
 }
