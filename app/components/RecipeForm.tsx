@@ -52,7 +52,7 @@ function CollapsibleCard({
   hasError = false, 
   isOpen, 
   onOpenChange,
-  contentClassName // Add this parameter
+  contentClassName
 }: CollapsibleCardProps) {
   return (
     <Collapsible open={isOpen} onOpenChange={onOpenChange}>
@@ -62,7 +62,7 @@ function CollapsibleCard({
             <CardTitle className="flex items-center justify-between">
               <div className="flex items-center">
                 {icon}
-                <span className="ml-2">{title}</span>
+                <span className="ml-2 text-xl">{title}</span>
               </div>
               {isOpen ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
             </CardTitle>
@@ -622,7 +622,7 @@ export function RecipeForm({ initialRecipe, slug, isEditing, onSave, onCancel }:
 
       <div data-section="steps">
         <CollapsibleCard 
-          title="Recipe Steps" 
+          title="Steps" 
           icon={<ListOrdered className="h-5 w-5 mr-2" />}
           hasError={sectionErrors.steps}
           isOpen={sectionStates.steps}
@@ -665,7 +665,7 @@ export function RecipeForm({ initialRecipe, slug, isEditing, onSave, onCancel }:
 
       <div data-section="cookingDetails">
         <CollapsibleCard 
-          title="Cooking Details" 
+          title="Other Details" 
           icon={<Flame className="h-5 w-5 mr-2" />}
           hasError={sectionErrors.cookingDetails}
           isOpen={sectionStates.cookingDetails}
@@ -743,7 +743,7 @@ export function RecipeForm({ initialRecipe, slug, isEditing, onSave, onCancel }:
 
       <div data-section="image">
         <CollapsibleCard 
-          title="Recipe Image" 
+          title="Image" 
           icon={<ImageIcon className="h-5 w-5 mr-2" />}
           hasError={sectionErrors.image}
           isOpen={sectionStates.image}

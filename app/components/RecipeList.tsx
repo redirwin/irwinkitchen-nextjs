@@ -130,7 +130,10 @@ export default function RecipeList() {
       recipe.ingredients.some(ing => ing.name.toLowerCase().includes(term)) ||
       (Array.isArray(recipe.tags)
         ? recipe.tags.some(tag => tag.name.toLowerCase().includes(term))
-        : recipe.tags.toLowerCase().includes(term))
+        : recipe.tags.toLowerCase().includes(term)) ||
+      (recipe.cookingTime && recipe.cookingTime.toLowerCase().includes(term)) ||
+      (recipe.difficulty && recipe.difficulty.toLowerCase().includes(term)) ||
+      (recipe.servingSize && recipe.servingSize.toString().includes(term))
     );
   };
 
@@ -223,13 +226,14 @@ export default function RecipeList() {
               searchQuery={searchQuery} 
               onSearchChange={handleSearchChange} 
               onClearSearch={resetFilters}
+              tooltip="Search by recipe name, description, ingredients, or tags"
             />
           </div>
           <TagList 
             allTags={allTags} 
             selectedTags={selectedTags} 
             onTagToggle={toggleTag} 
-            onResetTags={resetTags} // This now resets both tags and search query
+            onResetTags={resetTags}
           />
         </div>
 

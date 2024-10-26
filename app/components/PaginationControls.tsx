@@ -49,16 +49,23 @@ export function PaginationControls({ currentPage, totalPages, onPageChange }: Pa
     return pageNumbers;
   };
 
+  const handleNextPage = () => {
+    if (currentPage === totalPages) {
+      onPageChange(1); // Go to first page if we're on the last page
+    } else {
+      onPageChange(currentPage + 1);
+    }
+  };
+
   return (
     <nav className="flex justify-center items-center space-x-2">
       <Button
         variant="outline"
         size="icon"
-        onClick={() => onPageChange(currentPage - 1)}
-        disabled={currentPage === 1}
+        onClick={() => onPageChange(currentPage === 1 ? totalPages : currentPage - 1)}
+        aria-label="Previous page"
       >
         <ChevronLeft className="h-4 w-4" />
-        <span className="sr-only">Previous page</span>
       </Button>
       <div className="hidden sm:flex items-center space-x-2">
         {getPageNumbers().map((pageNumber, index) => (
@@ -86,11 +93,10 @@ export function PaginationControls({ currentPage, totalPages, onPageChange }: Pa
       <Button
         variant="outline"
         size="icon"
-        onClick={() => onPageChange(currentPage + 1)}
-        disabled={currentPage === totalPages}
+        onClick={handleNextPage}
+        aria-label="Next page"
       >
         <ChevronRight className="h-4 w-4" />
-        <span className="sr-only">Next page</span>
       </Button>
     </nav>
   );
