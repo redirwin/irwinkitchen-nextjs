@@ -3,6 +3,7 @@ import prisma from '@/lib/prisma'
 import { PrismaClientKnownRequestError } from '@prisma/client/runtime/library'
 import slugify from 'slugify';
 import { toTitleCase } from "@/app/utils/stringUtils";
+import { uploadImage } from '@/lib/imageUtils'
 
 export async function GET(request: Request) {
   try {
