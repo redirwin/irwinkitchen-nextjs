@@ -10,21 +10,20 @@ import { useRouter } from "next/navigation"
 import { useRecipes } from '@/lib/recipeContext'
 import { useToast } from "@/app/components/ui/use-toast"
 import Image from 'next/image';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Save as SaveIcon, ChefHat, Clipboard, ListOrdered, Clock, BarChart, Users, Tags, Image as ImageIcon, PlusCircle, X, Trash2, Flame, X as CancelIcon, ChevronDown, ChevronUp } from 'lucide-react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/app/components/ui/dialog"
 import { TagInput } from './TagInput';
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card"
-import { ChefHat, Clipboard, ListOrdered, Clock, BarChart, Users, Tags, Image as ImageIcon, PlusCircle, X, Trash2, Flame, X as CancelIcon, Save as SaveIcon } from "lucide-react"
 import {
   Collapsible,
   CollapsibleContent,
   CollapsibleTrigger,
 } from "@/app/components/ui/collapsible"
-import { ChevronDown, ChevronUp } from "lucide-react"
 import { Recipe } from '@/types/Recipe';
 import { supabase } from '@/lib/supabaseClient'
 import { uploadImage } from '@/lib/imageUtils'
 import { toTitleCase } from "@/app/utils/stringUtils"
+import { LoadingOverlay } from './LoadingOverlay';
 
 interface RecipeFormProps {
   initialRecipe?: Recipe;
@@ -45,12 +44,12 @@ interface CollapsibleCardProps {
   contentClassName?: string; // Add this line
 }
 
-function CollapsibleCard({ 
-  title, 
-  icon, 
-  children, 
-  hasError = false, 
-  isOpen, 
+function CollapsibleCard({
+  title,
+  icon,
+  children,
+  hasError = false,
+  isOpen,
   onOpenChange,
   contentClassName
 }: CollapsibleCardProps) {
@@ -87,9 +86,9 @@ export function RecipeForm({ initialRecipe, slug, isEditing, onSave, onCancel }:
         tags: Array.isArray(initialRecipe.tags)
           ? initialRecipe.tags.join(', ')
           : typeof initialRecipe.tags === 'string'
-          ? initialRecipe.tags
-          : '',
-        steps: initialRecipe.steps.map(step => 
+            ? initialRecipe.tags
+            : '',
+        steps: initialRecipe.steps.map(step =>
           typeof step === 'string' ? step : step.content
         ),
         image: null,
@@ -138,6 +137,7 @@ export function RecipeForm({ initialRecipe, slug, isEditing, onSave, onCancel }:
   const headingText = isEditing && initialRecipe
     ? `Editing ${toTitleCase(initialRecipe.name)}`
     : "Adding a New Recipe";
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
@@ -254,14 +254,14 @@ export function RecipeForm({ initialRecipe, slug, isEditing, onSave, onCancel }:
         const { error } = await supabase.storage
           .from('recipe-images')
           .remove([fileName]);
-        
+
         if (error) {
           console.error('Error deleting image from Supabase:', error);
           // Handle the error (e.g., show a toast notification)
         }
       }
     }
-    
+
     setRecipe(prev => ({ ...prev, image: null, imageUrl: null }));
     setImagePreview(null);
     setHasExistingImage(false);
@@ -292,8 +292,11 @@ export function RecipeForm({ initialRecipe, slug, isEditing, onSave, onCancel }:
   };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
+    e.preventDefault();  // Prevent default form submission
     setError(null);
+
+    // Store the current scroll position
+    const scrollPosition = window.pageYOffset;
 
     // First, expand all sections
     setSectionStates(prev => Object.fromEntries(
@@ -316,6 +319,11 @@ export function RecipeForm({ initialRecipe, slug, isEditing, onSave, onCancel }:
 
       // If validation passes, proceed with form submission
       submitForm();
+
+      // Restore the scroll position after a short delay
+      setTimeout(() => {
+        window.scrollTo(0, scrollPosition);
+      }, 100);
     }, 0);
   };
 
@@ -324,6 +332,8 @@ export function RecipeForm({ initialRecipe, slug, isEditing, onSave, onCancel }:
       console.error('Form element not found');
       return;
     }
+
+    setIsSaving(true);  // Set loading state to true
 
     const formData = new FormData(formRef.current);
 
@@ -383,6 +393,8 @@ export function RecipeForm({ initialRecipe, slug, isEditing, onSave, onCancel }:
         description: error instanceof Error ? error.message : 'An error occurred while saving the recipe',
         variant: "destructive",
       });
+    } finally {
+      setIsSaving(false);  // Set loading state back to false
     }
   };
 
@@ -465,8 +477,8 @@ export function RecipeForm({ initialRecipe, slug, isEditing, onSave, onCancel }:
             tags: Array.isArray(initialRecipe.tags)
               ? initialRecipe.tags.map(tag => tag.name).join(', ')
               : typeof initialRecipe.tags === 'string'
-              ? initialRecipe.tags
-              : '',
+                ? initialRecipe.tags
+                : '',
             steps: initialRecipe.steps.map(step => typeof step === 'string' ? step : step.content),
             image: null
           });
@@ -490,7 +502,7 @@ export function RecipeForm({ initialRecipe, slug, isEditing, onSave, onCancel }:
   useEffect(() => {
     const fetchAllTags = () => {
       try {
-        const uniqueTags = Array.from(new Set(recipes.flatMap(recipe => 
+        const uniqueTags = Array.from(new Set(recipes.flatMap(recipe =>
           Array.isArray(recipe.tags) ? recipe.tags.map(tag => tag.name) : recipe.tags.split(',').map(tag => tag.trim())
         ))).sort();
         setAllTags(uniqueTags);
@@ -528,331 +540,335 @@ export function RecipeForm({ initialRecipe, slug, isEditing, onSave, onCancel }:
   }
 
   return (
-    <form onSubmit={handleSubmit} ref={formRef} className="space-y-8 max-w-2xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold flex items-center space-x-2 pb-2 border-b border-gray-200">
-          <span>{headingText}</span>
-        </h1>
-      </div>
-      <div data-section="basicInfo">
-        <CollapsibleCard 
-          title="Basic Information" 
-          icon={<ChefHat className="h-5 w-5 mr-2" />}
-          hasError={sectionErrors.basicInfo}
-          isOpen={sectionStates.basicInfo}
-          onOpenChange={(isOpen) => setSectionStates(prev => ({ ...prev, basicInfo: isOpen }))}
-          contentClassName="p-0" // Change this line
-        >
-          <CardContent className="space-y-4">
-            <div>
-              <Label htmlFor="name">Recipe Name</Label>
-              <Input id="name" name="name" value={recipe.name} onChange={handleChange} required />
-            </div>
-            <div>
-              <Label htmlFor="shortDescription">Short Description</Label>
-              <Input
-                id="shortDescription"
-                name="shortDescription"
-                value={recipe.shortDescription}
-                onChange={handleChange}
-                required
-                maxLength={100}
-              />
-            </div>
-            <div>
-              <Label htmlFor="description">Full Description</Label>
-              <Textarea id="description" name="description" value={recipe.description} onChange={handleChange} required />
-            </div>
-          </CardContent>
-        </CollapsibleCard>
-      </div>
+    <>
+      {isSaving && <LoadingOverlay message="Saving recipe..." />}
+      <form onSubmit={handleSubmit} ref={formRef} className="space-y-8 max-w-2xl mx-auto">
+        <div className="mb-8">
+          <h1 className="text-3xl font-semibold flex items-center space-x-2 pb-2 border-b border-gray-200">
+            <span>{headingText}</span>
+          </h1>
+        </div>
+        <div data-section="basicInfo">
+          <CollapsibleCard
+            title="Basic Information"
+            icon={<ChefHat className="h-5 w-5 mr-2" />}
+            hasError={sectionErrors.basicInfo}
+            isOpen={sectionStates.basicInfo}
+            onOpenChange={(isOpen) => setSectionStates(prev => ({ ...prev, basicInfo: isOpen }))}
+            contentClassName="p-0" // Change this line
+          >
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="name">Recipe Name</Label>
+                <Input id="name" name="name" value={recipe.name} onChange={handleChange} required />
+              </div>
+              <div>
+                <Label htmlFor="shortDescription">Short Description</Label>
+                <Input
+                  id="shortDescription"
+                  name="shortDescription"
+                  value={recipe.shortDescription}
+                  onChange={handleChange}
+                  required
+                  maxLength={100}
+                />
+              </div>
+              <div>
+                <Label htmlFor="description">Full Description</Label>
+                <Textarea id="description" name="description" value={recipe.description} onChange={handleChange} required />
+              </div>
+            </CardContent>
+          </CollapsibleCard>
+        </div>
 
-      <div data-section="ingredients">
-        <CollapsibleCard 
-          title="Ingredients" 
-          icon={<Clipboard className="h-5 w-5 mr-2" />}
-          hasError={sectionErrors.ingredients}
-          isOpen={sectionStates.ingredients}
-          onOpenChange={(isOpen) => setSectionStates(prev => ({ ...prev, ingredients: isOpen }))}
-          contentClassName="p-0"
-        >
-          <CardContent>
-            {recipe.ingredients.map((ingredient, index) => (
-              <div key={index} className="flex items-center space-x-2 mb-4">
-                <div className="flex-grow flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
-                  <Input
-                    placeholder="Amount"
-                    value={ingredient.amount}
-                    onChange={(e) => handleIngredientChange(index, 'amount', e.target.value)}
-                    className="w-full sm:w-1/3"
-                  />
-                  <div className="relative w-full sm:w-2/3">
+        <div data-section="ingredients">
+          <CollapsibleCard
+            title="Ingredients"
+            icon={<Clipboard className="h-5 w-5 mr-2" />}
+            hasError={sectionErrors.ingredients}
+            isOpen={sectionStates.ingredients}
+            onOpenChange={(isOpen) => setSectionStates(prev => ({ ...prev, ingredients: isOpen }))}
+            contentClassName="p-0"
+          >
+            <CardContent>
+              {recipe.ingredients.map((ingredient, index) => (
+                <div key={index} className="flex items-center space-x-2 mb-4">
+                  <div className="flex-grow flex flex-col sm:flex-row items-start sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
                     <Input
-                      placeholder="Ingredient name"
-                      value={ingredient.name}
-                      onChange={(e) => handleIngredientChange(index, 'name', e.target.value)}
-                      className="pr-8 w-full"
+                      placeholder="Amount"
+                      value={ingredient.amount}
+                      onChange={(e) => handleIngredientChange(index, 'amount', e.target.value)}
+                      className="w-full sm:w-1/3"
                     />
-                    {recipe.ingredients.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeIngredient(index)}
-                        className="absolute inset-y-0 right-0 flex items-center pr-3"
-                      >
-                        <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
-                      </button>
-                    )}
+                    <div className="relative w-full sm:w-2/3">
+                      <Input
+                        placeholder="Ingredient name"
+                        value={ingredient.name}
+                        onChange={(e) => handleIngredientChange(index, 'name', e.target.value)}
+                        className="pr-8 w-full"
+                      />
+                      {recipe.ingredients.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeIngredient(index)}
+                          className="absolute inset-y-0 right-0 flex items-center pr-3"
+                        >
+                          <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={addIngredient}
-              className="mt-2"
-            >
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Add Ingredient
-            </Button>
-          </CardContent>
-        </CollapsibleCard>
-      </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addIngredient}
+                className="mt-2"
+              >
+                <PlusCircle className="h-4 w-4 mr-2" />
+                Add Ingredient
+              </Button>
+            </CardContent>
+          </CollapsibleCard>
+        </div>
 
-      <div data-section="steps">
-        <CollapsibleCard 
-          title="Steps" 
-          icon={<ListOrdered className="h-5 w-5 mr-2" />}
-          hasError={sectionErrors.steps}
-          isOpen={sectionStates.steps}
-          onOpenChange={(isOpen) => setSectionStates(prev => ({ ...prev, steps: isOpen }))}
-          contentClassName="p-0"
-        >
-          <CardContent>
-            {recipe.steps.map((step, index) => (
-              <div key={index} className="relative mb-4">
-                <Textarea
-                  placeholder={`Step ${index + 1}`}
-                  value={step}
-                  onChange={(e) => handleStepChange(index, e.target.value)}
-                  className="pr-8"
-                />
-                {recipe.steps.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeStep(index)}
-                    className="absolute top-2 right-2"
-                  >
-                    <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
-                  </button>
+        <div data-section="steps">
+          <CollapsibleCard
+            title="Steps"
+            icon={<ListOrdered className="h-5 w-5 mr-2" />}
+            hasError={sectionErrors.steps}
+            isOpen={sectionStates.steps}
+            onOpenChange={(isOpen) => setSectionStates(prev => ({ ...prev, steps: isOpen }))}
+            contentClassName="p-0"
+          >
+            <CardContent>
+              {recipe.steps.map((step, index) => (
+                <div key={index} className="relative mb-4">
+                  <Textarea
+                    placeholder={`Step ${index + 1}`}
+                    value={step}
+                    onChange={(e) => handleStepChange(index, e.target.value)}
+                    className="pr-8"
+                  />
+                  {recipe.steps.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeStep(index)}
+                      className="absolute top-2 right-2"
+                    >
+                      <X className="h-4 w-4 text-gray-400 hover:text-gray-600" />
+                    </button>
+                  )}
+                </div>
+              ))}
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                onClick={addStep}
+                className="mt-2"
+              >
+                <PlusCircle className="h-4 w-4 mr-2" />
+                Add Step
+              </Button>
+            </CardContent>
+          </CollapsibleCard>
+        </div>
+
+        <div data-section="cookingDetails">
+          <CollapsibleCard
+            title="Other Details"
+            icon={<Flame className="h-5 w-5 mr-2" />}
+            hasError={sectionErrors.cookingDetails}
+            isOpen={sectionStates.cookingDetails}
+            onOpenChange={(isOpen) => setSectionStates(prev => ({ ...prev, cookingDetails: isOpen }))}
+            contentClassName="p-0" // Change this line
+          >
+            <CardContent>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <Label htmlFor="cookingTime" className="flex items-center mb-2 pl-2">
+                    <Clock className="h-4 w-4 mr-2" />
+                    <span>Cooking Time</span>
+                  </Label>
+                  <Input id="cookingTime" name="cookingTime" value={recipe.cookingTime} onChange={handleChange} />
+                </div>
+                <div>
+                  <Label htmlFor="difficulty" className="flex items-center mb-2 pl-2">
+                    <BarChart className="h-4 w-4 mr-2" />
+                    <span>Difficulty</span>
+                  </Label>
+                  <Select name="difficulty" onValueChange={(value) => setRecipe(prev => ({ ...prev, difficulty: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select difficulty" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Easy">Easy</SelectItem>
+                      <SelectItem value="Medium">Medium</SelectItem>
+                      <SelectItem value="Hard">Hard</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="servingSize" className="flex items-center mb-2 pl-2">
+                    <Users className="h-4 w-4 mr-2" />
+                    <span>Serving Size</span>
+                  </Label>
+                  <Input
+                    id="servingSize"
+                    name="servingSize"
+                    type="number"
+                    value={recipe.servingSize}
+                    onChange={handleChange}
+                    min="1"
+                    onKeyDown={(e) => {
+                      if (e.key === '-' || e.key === 'e') {
+                        e.preventDefault();
+                      }
+                    }}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </CollapsibleCard>
+        </div>
+
+        <div data-section="tags">
+          <CollapsibleCard
+            title="Tags"
+            icon={<Tags className="h-5 w-5 mr-2" />}
+            hasError={sectionErrors.tags}
+            isOpen={sectionStates.tags}
+            onOpenChange={(isOpen) => setSectionStates(prev => ({ ...prev, tags: isOpen }))}
+            contentClassName="p-0" // Change this line
+          >
+            <CardContent>
+              <TagInput
+                value={recipe.tags}
+                onChange={(value) => setRecipe(prev => ({ ...prev, tags: value }))}
+                allTags={allTags}
+                maxTags={6}
+              />
+            </CardContent>
+          </CollapsibleCard>
+        </div>
+
+        <div data-section="image">
+          <CollapsibleCard
+            title="Image"
+            icon={<ImageIcon className="h-5 w-5 mr-2" />}
+            hasError={sectionErrors.image}
+            isOpen={sectionStates.image}
+            onOpenChange={(isOpen) => setSectionStates(prev => ({ ...prev, image: isOpen }))}
+            contentClassName="p-0" // Change this line
+          >
+            <CardContent>
+              <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                {hasExistingImage ? (
+                  <div className="relative">
+                    <Image
+                      src={imagePreview || initialRecipe?.imageUrl || ''}
+                      alt="Recipe preview"
+                      width={128}
+                      height={128}
+                      className="object-cover rounded-md"
+                    />
+                    <Button
+                      type="button"
+                      onClick={handleRemoveImage}
+                      variant="destructive"
+                      size="icon"
+                      className="absolute top-2 right-2 h-8 w-8 rounded-full opacity-70 hover:opacity-100 transition-opacity"
+                      aria-label="Remove image"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="space-y-1 text-center">
+                    <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
+                    <div className="flex text-sm text-gray-600">
+                      <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
+                        <span>Upload a file</span>
+                        <input
+                          id="file-upload"
+                          name="file-upload"
+                          type="file"
+                          className="sr-only"
+                          ref={fileInputRef}
+                          onChange={handleImageChange}
+                          accept="image/jpeg,image/png,image/webp"
+                        />
+                      </label>
+                      <p className="pl-1">or drag and drop</p>
+                    </div>
+                    <p className="text-xs text-gray-500">
+                      JPEG, PNG, WebP up to 10MB and 3000x3000px
+                    </p>
+                  </div>
                 )}
               </div>
-            ))}
+            </CardContent>
+          </CollapsibleCard>
+        </div>
+
+        <div className="flex justify-between items-center">
+          <div className="w-auto">
+            {isEditing && (
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => setShowDeleteModal(true)}
+                className="w-auto"
+                aria-label="Delete Recipe"
+              >
+                <Trash2 className="h-5 w-5" />
+              </Button>
+            )}
+          </div>
+          <div className="flex space-x-2">
             <Button
               type="button"
               variant="outline"
-              size="sm"
-              onClick={addStep}
-              className="mt-2"
-            >
-              <PlusCircle className="h-4 w-4 mr-2" />
-              Add Step
-            </Button>
-          </CardContent>
-        </CollapsibleCard>
-      </div>
-
-      <div data-section="cookingDetails">
-        <CollapsibleCard 
-          title="Other Details" 
-          icon={<Flame className="h-5 w-5 mr-2" />}
-          hasError={sectionErrors.cookingDetails}
-          isOpen={sectionStates.cookingDetails}
-          onOpenChange={(isOpen) => setSectionStates(prev => ({ ...prev, cookingDetails: isOpen }))}
-          contentClassName="p-0" // Change this line
-        >
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div>
-                <Label htmlFor="cookingTime" className="flex items-center mb-2 pl-2">
-                  <Clock className="h-4 w-4 mr-2" />
-                  <span>Cooking Time</span>
-                </Label>
-                <Input id="cookingTime" name="cookingTime" value={recipe.cookingTime} onChange={handleChange} />
-              </div>
-              <div>
-                <Label htmlFor="difficulty" className="flex items-center mb-2 pl-2">
-                  <BarChart className="h-4 w-4 mr-2" />
-                  <span>Difficulty</span>
-                </Label>
-                <Select name="difficulty" onValueChange={(value) => setRecipe(prev => ({ ...prev, difficulty: value }))}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select difficulty" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Easy">Easy</SelectItem>
-                    <SelectItem value="Medium">Medium</SelectItem>
-                    <SelectItem value="Hard">Hard</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <Label htmlFor="servingSize" className="flex items-center mb-2 pl-2">
-                  <Users className="h-4 w-4 mr-2" />
-                  <span>Serving Size</span>
-                </Label>
-                <Input 
-                  id="servingSize" 
-                  name="servingSize" 
-                  type="number" 
-                  value={recipe.servingSize} 
-                  onChange={handleChange} 
-                  min="1" 
-                  onKeyDown={(e) => {
-                    if (e.key === '-' || e.key === 'e') {
-                      e.preventDefault();
-                    }
-                  }}
-                />
-              </div>
-            </div>
-          </CardContent>
-        </CollapsibleCard>
-      </div>
-
-      <div data-section="tags">
-        <CollapsibleCard 
-          title="Tags" 
-          icon={<Tags className="h-5 w-5 mr-2" />}
-          hasError={sectionErrors.tags}
-          isOpen={sectionStates.tags}
-          onOpenChange={(isOpen) => setSectionStates(prev => ({ ...prev, tags: isOpen }))}
-          contentClassName="p-0" // Change this line
-        >
-          <CardContent>
-            <TagInput
-              value={recipe.tags}
-              onChange={(value) => setRecipe(prev => ({ ...prev, tags: value }))}
-              allTags={allTags}
-              maxTags={6}
-            />
-          </CardContent>
-        </CollapsibleCard>
-      </div>
-
-      <div data-section="image">
-        <CollapsibleCard 
-          title="Image" 
-          icon={<ImageIcon className="h-5 w-5 mr-2" />}
-          hasError={sectionErrors.image}
-          isOpen={sectionStates.image}
-          onOpenChange={(isOpen) => setSectionStates(prev => ({ ...prev, image: isOpen }))}
-          contentClassName="p-0" // Change this line
-        >
-          <CardContent>
-            <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
-              {hasExistingImage ? (
-                <div className="relative">
-                  <Image
-                    src={imagePreview || initialRecipe?.imageUrl || ''}
-                    alt="Recipe preview"
-                    width={128}
-                    height={128}
-                    className="object-cover rounded-md"
-                  />
-                  <Button 
-                    type="button" 
-                    onClick={handleRemoveImage} 
-                    variant="destructive" 
-                    size="icon"
-                    className="absolute top-2 right-2 h-8 w-8 rounded-full opacity-70 hover:opacity-100 transition-opacity"
-                    aria-label="Remove image"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ) : (
-                <div className="space-y-1 text-center">
-                  <ImageIcon className="mx-auto h-12 w-12 text-gray-400" />
-                  <div className="flex text-sm text-gray-600">
-                    <label htmlFor="file-upload" className="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-indigo-500">
-                      <span>Upload a file</span>
-                      <input
-                        id="file-upload"
-                        name="file-upload"
-                        type="file"
-                        className="sr-only"
-                        ref={fileInputRef}
-                        onChange={handleImageChange}
-                        accept="image/jpeg,image/png,image/webp"
-                      />
-                    </label>
-                    <p className="pl-1">or drag and drop</p>
-                  </div>
-                  <p className="text-xs text-gray-500">
-                    JPEG, PNG, WebP up to 10MB and 3000x3000px
-                  </p>
-                </div>
-              )}
-            </div>
-          </CardContent>
-        </CollapsibleCard>
-      </div>
-
-      <div className="flex justify-between items-center">
-        <div className="w-auto">
-          {isEditing && (
-            <Button 
-              type="button" 
-              variant="destructive" 
-              onClick={() => setShowDeleteModal(true)} 
+              onClick={handleCancel}
               className="w-auto"
-              aria-label="Delete Recipe"
+              aria-label="Cancel"
             >
-              <Trash2 className="h-5 w-5" />
+              <CancelIcon className="h-5 w-5 sm:mr-2" />
+              <span className="hidden sm:inline">Cancel</span>
             </Button>
-          )}
+            <Button
+              type="submit"
+              className="w-auto"
+              aria-label={initialRecipe ? 'Save Recipe' : 'Add Recipe'}
+              disabled={isSaving}
+            >
+              <SaveIcon className="h-5 w-5 sm:mr-2" />
+              <span className="hidden sm:inline">{initialRecipe ? 'Save Recipe' : 'Add Recipe'}</span>
+            </Button>
+          </div>
         </div>
-        <div className="flex space-x-2">
-          <Button 
-            type="button" 
-            variant="outline" 
-            onClick={handleCancel} 
-            className="w-auto"
-            aria-label="Cancel"
-          >
-            <CancelIcon className="h-5 w-5 sm:mr-2" />
-            <span className="hidden sm:inline">Cancel</span>
-          </Button>
-          <Button 
-            type="submit" 
-            className="w-auto"
-            aria-label={initialRecipe ? 'Save Recipe' : 'Add Recipe'}
-          >
-            <SaveIcon className="h-5 w-5 sm:mr-2" />
-            <span className="hidden sm:inline">{initialRecipe ? 'Save Recipe' : 'Add Recipe'}</span>
-          </Button>
-        </div>
-      </div>
 
-      {error && (
-        <div className="fixed bottom-4 right-4 bg-white dark:bg-neutral-950 border border-red-500 text-red-700 px-7 py-3 rounded shadow-lg z-[100] transition-opacity duration-500 opacity-100">
-          <strong className="font-bold">Error: </strong>
-          <span className="block sm:inline">{error}</span>
-          <button
-            onClick={() => setError(null)}
-            className="absolute top-0 right-0 mt-2 mr-2 text-red-500 hover:text-red-700"
-            aria-label="Close error message"
-          >
-            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-        </div>
-      )}
+        {error && (
+          <div className="fixed bottom-4 right-4 bg-white dark:bg-neutral-950 border border-red-500 text-red-700 px-7 py-3 rounded shadow-lg z-[100] transition-opacity duration-500 opacity-100">
+            <strong className="font-bold">Error: </strong>
+            <span className="block sm:inline">{error}</span>
+            <button
+              onClick={() => setError(null)}
+              className="absolute top-0 right-0 mt-2 mr-2 text-red-500 hover:text-red-700"
+              aria-label="Close error message"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+        )}
 
-      <DeleteConfirmationModal />
-    </form>
+        <DeleteConfirmationModal />
+      </form>
+    </>
   )
 }

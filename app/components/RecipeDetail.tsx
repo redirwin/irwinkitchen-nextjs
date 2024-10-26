@@ -6,7 +6,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from "@/app/components/ui/button";
-import { Pencil, ArrowLeft, Clipboard, ListOrdered, ChefHat, Tags, Printer, Home } from "lucide-react";
+import { Pencil, ArrowLeft, Clipboard, ListOrdered, ChefHat, Tags, Printer, Home, Clock, BarChart, Users } from "lucide-react";
 import { useAuth } from "@clerk/nextjs";
 import { toTitleCase } from "@/app/utils/stringUtils";
 import { Card, CardContent, CardHeader, CardTitle } from "@/app/components/ui/card";
@@ -23,8 +23,18 @@ interface RecipeDetailProps {
 
 export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
   const [recipe, setRecipe] = useState(initialRecipe);
+  const [isScrolled, setIsScrolled] = useState(false);
   const router = useRouter();
   const { isSignedIn } = useAuth();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 0);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   useEffect(() => {
     const fetchUpdatedRecipe = async () => {
@@ -124,10 +134,12 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
           />
         </div>
       )}
-      <div className="flex flex-wrap items-start justify-between mb-6">
-        <h1 className="text-3xl font-bold mr-4 mb-4 xs:mb-0">{toTitleCase(recipe.name)}</h1>
+
+      <div className={`sticky top-16 z-40 bg-white -mx-4 px-4 transition-shadow duration-200
+        ${isScrolled ? 'py-2 shadow-md' : 'pt-0 pb-3'}
+        md:static md:bg-transparent md:shadow-none md:px-0 md:mx-0 md:py-0`}>
         <TooltipProvider>
-          <div className="flex flex-wrap xs:flex-nowrap space-x-2">
+          <div className="flex justify-end space-x-2">
             {isSignedIn && (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -173,12 +185,47 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
           </div>
         </TooltipProvider>
       </div>
-      {recipe.shortDescription && <p className="text-lg mb-4">{recipe.shortDescription}</p>}
-      <div className="flex space-x-4 mb-4">
-        {recipe.cookingTime && <Badge>{recipe.cookingTime}</Badge>}
-        {recipe.difficulty && <Badge>{recipe.difficulty}</Badge>}
-        {recipe.servingSize && <Badge>Serves {recipe.servingSize}</Badge>}
+      
+      <h1 className="text-3xl font-bold mb-0 mt-2">{toTitleCase(recipe.name)}</h1>
+
+      {recipe.shortDescription && <p className="text-lg mb-4 mt-0">{recipe.shortDescription}</p>}
+      
+      <div className="flex flex-wrap gap-4 mb-4 text-sm text-muted-foreground">
+        {recipe.cookingTime && (
+          <div className="flex items-center">
+            <Clock className="w-4 h-4 mr-2" /> {recipe.cookingTime}
+          </div>
+        )}
+        {recipe.difficulty && (
+          <div className="flex items-center">
+            <BarChart className="w-4 h-4 mr-2" /> {recipe.difficulty}
+          </div>
+        )}
+        {recipe.servingSize && (
+          <div className="flex items-center">
+            <Users className="w-4 h-4 mr-2" /> Serves {recipe.servingSize}
+          </div>
+        )}
       </div>
+
+      {recipe.tags && (
+        <div className="mb-6 flex items-center flex-wrap gap-2">
+          <Tags className="h-5 w-5 text-gray-500" aria-label="Tags" />
+          {Array.isArray(recipe.tags) ? (
+            recipe.tags.map((tag) => (
+              <Badge key={tag.name} variant="secondary">
+                {tag.name}
+              </Badge>
+            ))
+          ) : typeof recipe.tags === 'string' ? (
+            toTitleCase(recipe.tags).split(',').map((tag) => (
+              <Badge key={tag.trim()} variant="secondary">
+                {tag.trim()}
+              </Badge>
+            ))
+          ) : null}
+        </div>
+      )}
 
       <div className="grid md:grid-cols-2 gap-6 mb-8">
         <Card>
@@ -228,25 +275,6 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
             <p className="text-lg">{recipe.description}</p>
           </CardContent>
         </Card>
-      )}
-
-      {recipe.tags && (
-        <div className="mb-4 flex items-center flex-wrap gap-2">
-          <Tags className="h-5 w-5 text-gray-500" aria-label="Tags" />
-          {Array.isArray(recipe.tags) ? (
-            recipe.tags.map((tag) => (
-              <Badge key={tag.name} variant="secondary">
-                {tag.name}
-              </Badge>
-            ))
-          ) : typeof recipe.tags === 'string' ? (
-            toTitleCase(recipe.tags).split(',').map((tag) => (
-              <Badge key={tag.trim()} variant="secondary">
-                {tag.trim()}
-              </Badge>
-            ))
-          ) : null}
-        </div>
       )}
     </div>
   );

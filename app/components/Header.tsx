@@ -26,7 +26,7 @@ export const Header: FC<HeaderProps> = ({ className = '' }) => {
   const linkClass = "flex items-center justify-center";
 
   return (
-    <header className={`bg-navy-blue text-white border-b ${className}`}>
+    <header className={`bg-navy-blue text-white border-b sticky top-0 left-0 right-0 z-50 ${className}`}>
       <div className="container mx-auto max-w-4xl flex h-16 items-center justify-between px-4 sm:px-8">
         <button onClick={() => {
           sessionStorage.setItem('resetListState', 'true');
