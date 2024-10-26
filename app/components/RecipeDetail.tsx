@@ -140,6 +140,16 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
         md:static md:bg-transparent md:shadow-none md:px-0 md:mx-0 md:py-0`}>
         <TooltipProvider>
           <div className="flex justify-end space-x-2">
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button variant="outline" size="icon" onClick={handlePrint}>
+                  <Printer className="h-4 w-4" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent side="bottom" align="center" sideOffset={5}>
+                <p>Print Recipe</p>
+              </TooltipContent>
+            </Tooltip>
             {isSignedIn && (
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -154,26 +164,6 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
             )}
             <Tooltip>
               <TooltipTrigger asChild>
-                <Button variant="outline" size="icon" onClick={handlePrint}>
-                  <Printer className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" align="center" sideOffset={5}>
-                <p>Print Recipe</p>
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <Button variant="outline" size="icon" onClick={handleHome}>
-                  <Home className="h-4 w-4" />
-                </Button>
-              </TooltipTrigger>
-              <TooltipContent side="bottom" align="center" sideOffset={5}>
-                <p>Go to Home</p>
-              </TooltipContent>
-            </Tooltip>
-            <Tooltip>
-              <TooltipTrigger asChild>
                 <Button variant="outline" size="icon" onClick={handleBack}>
                   <ArrowLeft className="h-4 w-4" />
                 </Button>
@@ -185,11 +175,11 @@ export function RecipeDetail({ initialRecipe }: RecipeDetailProps) {
           </div>
         </TooltipProvider>
       </div>
-      
+
       <h1 className="text-3xl font-bold mb-0 mt-2">{toTitleCase(recipe.name)}</h1>
 
       {recipe.shortDescription && <p className="text-lg mb-4 mt-0">{recipe.shortDescription}</p>}
-      
+
       <div className="flex flex-wrap gap-4 mb-4 text-sm text-muted-foreground">
         {recipe.cookingTime && (
           <div className="flex items-center">
